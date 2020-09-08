@@ -9,6 +9,10 @@
       <FILE id="v503Nc" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="krqd3V" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
+      <FILE id="vHbA4t" name="ProjectFilesInitialiser.h" compile="0" resource="0"
+            file="Source/ProjectFilesInitialiser.h"/>
+      <FILE id="Es1LjL" name="ProjectFilesInitialiser.cpp" compile="1" resource="0"
+            file="Source/ProjectFilesInitialiser.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>

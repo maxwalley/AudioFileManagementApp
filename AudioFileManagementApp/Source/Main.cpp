@@ -8,13 +8,17 @@
 
 #include <JuceHeader.h>
 #include "MainComponent.h"
+#include "ProjectFilesInitialiser.h"
 
 //==============================================================================
 class NewProjectApplication  : public juce::JUCEApplication
 {
 public:
     //==============================================================================
-    NewProjectApplication() {}
+    NewProjectApplication() : fileInitialiser(File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getFullPathName() + "/AudioFileManagementApp")
+    {
+        
+    }
 
     const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
@@ -26,6 +30,7 @@ public:
         // This method is where you should put your application's initialisation code..
 
         mainWindow.reset (new MainWindow (getApplicationName()));
+        
     }
 
     void shutdown() override
@@ -98,6 +103,7 @@ public:
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
+    ProjectInitialiser fileInitialiser;
 };
 
 //==============================================================================
