@@ -14,7 +14,7 @@
 
 using namespace juce;
 
-class ProjectFilesInitialiser
+class ProjectFilesHandler
 {
 public:
     enum class ProjectFile
@@ -23,14 +23,17 @@ public:
         dataXml
     };
     
-    ProjectFilesInitialiser (const String& settingsDirectoryPath);
-    ~ProjectFilesInitialiser();
+    ProjectFilesHandler (const String& settingsDirectoryPath);
+    ~ProjectFilesHandler();
     
 private:
-    //Directory should not have actual file on the end
-    bool createBlankFile (ProjectFile typeOfFileToCreate, File directory);
+    
+    bool createBlankFile (ProjectFile typeOfFileToCreate, File fileToCreate);
     
     XmlElement createDefaultXmlForFile (ProjectFile typeOfXmlToCreate);
+    
+    //if file does have correct data returns the parsed xml
+    std::unique_ptr<XmlElement> parseAndCheckFile (ProjectFile typeOfFileToCheck, File fileToCheck);
     
     std::unique_ptr<XmlDocument> projectSettingsXML;
     
