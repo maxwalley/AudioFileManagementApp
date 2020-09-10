@@ -33,11 +33,16 @@ bool AudioFileManagementApplication::moreThanOneInstanceAllowed()
 void AudioFileManagementApplication::initialise (const juce::String& commandLine)
 {
     mainWindow.reset (new MainWindow (getApplicationName()));
+    
+    menu.addActionListener(this);
+    MenuBarModel::setMacMainMenu(&menu);
 }
 
 void AudioFileManagementApplication::shutdown()
 {
     mainWindow = nullptr;
+    
+    MenuBarModel::setMacMainMenu(nullptr);
 }
 
 void AudioFileManagementApplication::systemRequestedQuit()
@@ -48,6 +53,28 @@ void AudioFileManagementApplication::systemRequestedQuit()
 void AudioFileManagementApplication::anotherInstanceStarted (const juce::String& commandLine)
 {
     
+}
+
+void AudioFileManagementApplication::actionListenerCallback(const juce::String& message)
+{
+    if(message == "Add")
+    {
+        if(addFilesWindow == nullptr)
+        {
+            addFilesWindow = std::make_unique<ComponentWindow>("Select Files to Add", Colours::silver, DocumentWindow::allButtons);
+        }
+        
+        if(addFilesWindow->getContentComponent() == nullptr)
+        {
+            addFilesComponent = std::make_unique<AddFilesComponent>();
+            addFilesWindow->setContentNonOwned(addFilesComponent.get(), true);
+        }
+        
+        if(addFilesComponent->lookForFilesAndAdd())
+        {
+            addFilesWindow->setVisible(true);
+        }
+    }
 }
 
 AudioFileManagementApplication::MainWindow::MainWindow(juce::String name) : DocumentWindow (name, juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), DocumentWindow::allButtons)

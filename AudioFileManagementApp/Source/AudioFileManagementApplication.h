@@ -13,8 +13,12 @@
 #include <JuceHeader.h>
 #include "MainComponent.h"
 #include "ProjectFilesHandler.h"
+#include "MenuModel.h"
+#include "ComponentWindow.h"
+#include "AddFilesComponent.h"
 
-class AudioFileManagementApplication  : public juce::JUCEApplication
+class AudioFileManagementApplication  : public juce::JUCEApplication,
+                                        public juce::ActionListener
 {
 public:
     
@@ -49,5 +53,11 @@ public:
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
+    MenuModel menu;
     ProjectFilesHandler fileHandler;
+    std::unique_ptr<ComponentWindow> addFilesWindow;
+    std::unique_ptr<AddFilesComponent> addFilesComponent;
+    
+    void actionListenerCallback(const juce::String& message) override;
+    
 };

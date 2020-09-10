@@ -17,6 +17,16 @@
             resource="0" file="Source/AudioFileManagementApplication.h"/>
       <FILE id="kqsCoq" name="AudioFileManagementApplication.cpp" compile="1"
             resource="0" file="Source/AudioFileManagementApplication.cpp"/>
+      <FILE id="UY4Gqq" name="MenuModel.h" compile="0" resource="0" file="Source/MenuModel.h"/>
+      <FILE id="ZrmVC4" name="MenuModel.cpp" compile="1" resource="0" file="Source/MenuModel.cpp"/>
+      <FILE id="S1i2vZ" name="ComponentWindow.h" compile="0" resource="0"
+            file="Source/ComponentWindow.h"/>
+      <FILE id="Z5VKfn" name="ComponentWindow.cpp" compile="1" resource="0"
+            file="Source/ComponentWindow.cpp"/>
+      <FILE id="CUqnZy" name="AddFilesComponent.h" compile="0" resource="0"
+            file="Source/AddFilesComponent.h"/>
+      <FILE id="LdYjX2" name="AddFilesComponent.cpp" compile="1" resource="0"
+            file="Source/AddFilesComponent.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
