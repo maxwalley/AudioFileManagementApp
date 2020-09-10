@@ -13,6 +13,10 @@
             file="Source/ProjectFilesHandler.h"/>
       <FILE id="Es1LjL" name="ProjectFilesHandler.cpp" compile="1" resource="0"
             file="Source/ProjectFilesHandler.cpp"/>
+      <FILE id="gPh9FG" name="AudioFileManagementApplication.h" compile="0"
+            resource="0" file="Source/AudioFileManagementApplication.h"/>
+      <FILE id="kqsCoq" name="AudioFileManagementApplication.cpp" compile="1"
+            resource="0" file="Source/AudioFileManagementApplication.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
