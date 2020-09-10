@@ -11,13 +11,14 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "AddFilesListModel.h"
 
 //==============================================================================
 /*
 */
 using namespace juce;
 
-class AddFilesComponent  : public juce::Component
+class AddFilesComponent  : public Component
 {
 public:
     AddFilesComponent();
@@ -32,6 +33,8 @@ public:
 
 private:
     Array<File> filesToAdd;
+    ListBox fileList;
+    AddFilesListModel listModel;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesComponent)
 };

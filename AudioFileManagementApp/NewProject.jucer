@@ -27,6 +27,10 @@
             file="Source/AddFilesComponent.h"/>
       <FILE id="LdYjX2" name="AddFilesComponent.cpp" compile="1" resource="0"
             file="Source/AddFilesComponent.cpp"/>
+      <FILE id="s4LYY0" name="AddFilesListModel.h" compile="0" resource="0"
+            file="Source/AddFilesListModel.h"/>
+      <FILE id="pf9new" name="AddFilesListModel.cpp" compile="1" resource="0"
+            file="Source/AddFilesListModel.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>

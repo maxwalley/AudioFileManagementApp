@@ -15,6 +15,10 @@
 AddFilesComponent::AddFilesComponent()
 {
     setSize(600, 400);
+    
+    addAndMakeVisible(fileList);
+    
+    fileList.setModel(&listModel);
 }
 
 AddFilesComponent::~AddFilesComponent()
@@ -28,12 +32,14 @@ void AddFilesComponent::paint (juce::Graphics& g)
 
 void AddFilesComponent::resized()
 {
-    
+    fileList.setBounds(0, 0, getWidth() / 3, getHeight());
 }
 
 bool AddFilesComponent::lookForFilesAndAdd()
 {
-    FileChooser chooser("Select files to add", File::getSpecialLocation(File::userDocumentsDirectory));
+    filesToAdd.clear();
+    
+    FileChooser chooser("Select files to add");
     
     if(chooser.browseForMultipleFilesOrDirectories())
     {
@@ -56,6 +62,9 @@ bool AddFilesComponent::lookForFilesAndAdd()
         {
             return false;
         }
+        
+        listModel.setDataset(&filesToAdd);
+        fileList.updateContent();
         
         return true;
     }
