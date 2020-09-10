@@ -10,36 +10,75 @@
 
 #include "ProjectFilesHandler.h"
 
-ProjectFilesHandler::ProjectFilesHandler(const String& settingsDirectoryPath)
+ProjectFilesHandler::ProjectFilesHandler(const String& settingsDirectoryPath) : projectSettingsFile(settingsDirectoryPath + "/ProjectSettings.xml")
 {
-    String settingsFilePath = settingsDirectoryPath + "/ProjectSettings.xml";
+    std::optional<ValueTree> testSettingsTree;
     
-    File settingsFile = settingsFilePath;
+    testSettingsTree = parseAndCheckFile(ProjectFile::projectSettings, projectSettingsFile);
     
-    std::unique_ptr<XmlElement> settingsXml = parseAndCheckFile(ProjectFile::projectSettingsXml, settingsFile);
-    
-    if(settingsXml == nullptr)
+    //Failed one of the tests
+    if(testSettingsTree == std::nullopt)
     {
-        if(!createBlankFile(ProjectFile::projectSettingsXml, settingsFile))
+        if(!createBlankFile(ProjectFile::projectSettings, projectSettingsFile))
         {
             JUCEApplicationBase::quit();
         }
         
         else
         {
-            settingsXml = parseAndCheckFile(ProjectFile::projectSettingsXml, settingsFile);
+            testSettingsTree = parseAndCheckFile(ProjectFile::projectSettings, projectSettingsFile);
         }
     }
+    
+    projectSettingsTree = *testSettingsTree;
+    
+    
+    //Opening the project data
+    std::optional<ValueTree> testDataTree;
+    
+    String projectDataPath = projectSettingsTree.getChildWithName("ProjectData").getProperty("DataPath");
+    
+    projectDataFile = projectDataPath;
+    
+    testDataTree = parseAndCheckFile(ProjectFile::projectData, projectDataFile);
+    
+    //Failed one of the tests
+    if(testDataTree == std::nullopt)
+    {
+        if(!createBlankFile(ProjectFile::projectData, projectDataFile))
+        {
+            JUCEApplicationBase::quit();
+        }
+        
+        else
+        {
+            testDataTree = parseAndCheckFile(ProjectFile::projectData, projectDataFile);
+        }
+    }
+    
+    projectDataTree = *testDataTree;
 }
 
 ProjectFilesHandler::~ProjectFilesHandler()
 {
-    
+    projectDataTree.createXml()->writeTo(projectDataFile);
+    projectSettingsTree.createXml()->writeTo(projectSettingsFile);
+}
+
+ValueTree ProjectFilesHandler::getTreeFromFile(ProjectFile treeToReturn) const
+{
+    switch (treeToReturn)
+    {
+        case ProjectFile::projectSettings:
+            return projectSettingsTree;
+            
+        case ProjectFile::projectData:
+            return projectDataTree;
+    }
 }
 
 bool ProjectFilesHandler::createBlankFile (ProjectFile typeOfFileToCreate, File fileToCreate)
 {
-    
     if(fileToCreate.existsAsFile())
     {
         fileToCreate.deleteFile();
@@ -47,6 +86,7 @@ bool ProjectFilesHandler::createBlankFile (ProjectFile typeOfFileToCreate, File 
     
     if(fileToCreate.create().failed())
     {
+        std::cout << "Failure to create file at path specified: " << fileToCreate.getFullPathName() << "\n";
         return false;
     }
     
@@ -56,14 +96,14 @@ bool ProjectFilesHandler::createBlankFile (ProjectFile typeOfFileToCreate, File 
     return true;
 }
 
-XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlToCreate)
+XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlToCreate) const
 {
-    if(typeOfXmlToCreate == ProjectFile::projectSettingsXml)
+    if(typeOfXmlToCreate == ProjectFile::projectSettings)
     {
         XmlElement tree("Settings");
         
         //Project Data Path
-        tree.createNewChildElement("Project Data Settings")->setAttribute("Project Data Path", (File::getSpecialLocation(File::userApplicationDataDirectory).getFullPathName() + "/AudioFileManagementApp/Project Data.xml"));
+        tree.createNewChildElement("ProjectData")->setAttribute("DataPath", (File::getSpecialLocation(File::userApplicationDataDirectory).getFullPathName() + "/AudioFileManagementApp/Project Data.xml"));
             
         return tree;
     }
@@ -77,30 +117,38 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
     }
 }
 
-std::unique_ptr<XmlElement> ProjectFilesHandler::parseAndCheckFile (ProjectFile typeOfFileToCheck, File fileToCheck)
+std::optional<ValueTree> ProjectFilesHandler::parseAndCheckFile (ProjectFile typeOfFileToCheck, File fileToCheck)
 {
     if(!fileToCheck.existsAsFile())
     {
-        return nullptr;
+        return std::nullopt;
     }
     
     std::unique_ptr<XmlElement> parsedXml = parseXML(fileToCheck);
     
     if(parsedXml == nullptr)
     {
-        return nullptr;
+        return std::nullopt;
     }
     
-    if(typeOfFileToCheck == ProjectFile::projectSettingsXml)
+    ValueTree treeFromData = ValueTree::fromXml(*parsedXml);
+    
+    if(typeOfFileToCheck == ProjectFile::projectSettings)
     {
-        XmlElement* testerXml = parsedXml->getChildByName("Project Data Settings");
+        //Runs through the elements testing them
+        ValueTree testerTree;
         
-        if(testerXml == nullptr || !testerXml->hasAttribute("Project Data Path"))
+        testerTree = treeFromData.getChildWithName("ProjectData");
+        
+        //Doesn't have the element or the attribute
+        if(!testerTree.isValid() || !testerTree.hasProperty("DataPath"))
         {
-            return nullptr;
+            return std::nullopt;
         }
         
-        return parsedXml;
+        return treeFromData;
     }
     
+    //Project data xml
+    return treeFromData;
 }

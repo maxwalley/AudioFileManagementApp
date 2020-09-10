@@ -8,14 +8,14 @@
 
 #include <JuceHeader.h>
 #include "MainComponent.h"
-#include "ProjectFilesInitialiser.h"
+#include "ProjectFilesHandler.h"
 
 //==============================================================================
 class NewProjectApplication  : public juce::JUCEApplication
 {
 public:
     //==============================================================================
-    NewProjectApplication() : fileInitialiser(File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getFullPathName() + "/AudioFileManagementApp")
+    NewProjectApplication() : fileHandler(File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getFullPathName() + "/AudioFileManagementApp")
     {
         
     }
@@ -103,7 +103,7 @@ public:
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
-    ProjectInitialiser fileInitialiser;
+    ProjectFilesHandler fileHandler;
 };
 
 //==============================================================================

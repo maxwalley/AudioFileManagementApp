@@ -19,22 +19,28 @@ class ProjectFilesHandler
 public:
     enum class ProjectFile
     {
-        projectSettingsXml,
-        dataXml
+        projectSettings,
+        projectData
     };
     
     ProjectFilesHandler (const String& settingsDirectoryPath);
     ~ProjectFilesHandler();
     
+    ValueTree getTreeFromFile(ProjectFile treeToReturn) const;
+    
 private:
     
     bool createBlankFile (ProjectFile typeOfFileToCreate, File fileToCreate);
     
-    XmlElement createDefaultXmlForFile (ProjectFile typeOfXmlToCreate);
+    XmlElement createDefaultXmlForFile (ProjectFile typeOfXmlToCreate) const;
     
     //if file does have correct data returns the parsed xml
-    std::unique_ptr<XmlElement> parseAndCheckFile (ProjectFile typeOfFileToCheck, File fileToCheck);
+    std::optional<ValueTree> parseAndCheckFile (ProjectFile typeOfFileToCheck, File fileToCheck);
     
-    std::unique_ptr<XmlDocument> projectSettingsXML;
+    File projectSettingsFile;
+    File projectDataFile;
+    
+    ValueTree projectSettingsTree;
+    ValueTree projectDataTree;
     
 };
