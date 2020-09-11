@@ -18,7 +18,8 @@
 */
 using namespace juce;
 
-class AddFilesComponent  : public Component
+class AddFilesComponent  : public Component,
+                           public Button::Listener
 {
 public:
     AddFilesComponent();
@@ -32,6 +33,9 @@ public:
     bool lookForFilesAndAdd();
 
 private:
+    
+    void buttonClicked(Button* button) override;
+    
     Array<File> filesToAdd;
     ListBox fileList;
     AddFilesListModel listModel;

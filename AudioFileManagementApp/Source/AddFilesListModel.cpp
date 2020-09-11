@@ -16,6 +16,10 @@ ToggleItem::ToggleItem()
     addAndMakeVisible(selectButton);
     addAndMakeVisible(textLabel);
     
+    selectButton.setColour(ToggleButton::tickDisabledColourId, Colours::black);
+    
+    selectButton.setColour(ToggleButton::tickColourId, Colours::black);
+    
     textLabel.setColour(Label::textColourId, Colours::black);
 }
 
@@ -40,9 +44,24 @@ void ToggleItem::setItemText(const String& newText)
     textLabel.setText(newText, dontSendNotification);
 }
 
+void ToggleItem::addButtonListener(Button::Listener* newListener)
+{
+    selectButton.addListener(newListener);
+}
+
+void ToggleItem::setRowNum(int newRowNum)
+{
+    rowNumber = newRowNum;
+}
+
+int ToggleItem::getRowNum() const
+{
+    return rowNumber;
+}
 
 
-AddFilesListModel::AddFilesListModel() : dataset(nullptr)
+
+AddFilesListModel::AddFilesListModel(Button::Listener* itemButtonListener) : toggleButtonLis(itemButtonListener), dataset(nullptr)
 {
     
 }
@@ -79,7 +98,14 @@ Component* AddFilesListModel::refreshComponentForRow (int rowNum, bool isRowSele
     if(itemToReturn == nullptr)
     {
         itemToReturn = new ToggleItem;
+        
+        if(toggleButtonLis != nullptr)
+        {
+            itemToReturn->addButtonListener(toggleButtonLis);
+        }
     }
+    
+    itemToReturn->setRowNum(rowNum);
     
     itemToReturn->setItemText((*dataset)[rowNum].getFileName());
     

@@ -25,16 +25,24 @@ public:
     
     void setItemText(const String& newText);
     
+    void addButtonListener(Button::Listener* newListener);
+    
+    void setRowNum(int newRowNum);
+    int getRowNum() const;
+    
 private:
     ToggleButton selectButton;
     Label textLabel;
+    
+    int rowNumber;
 };
 
 
 class AddFilesListModel : public ListBoxModel
 {
 public:
-    AddFilesListModel();
+    //itemButtonListener is a listener for the ToggleButtons on the items. If this is nullptr no listener will be added when the buttons are created
+    AddFilesListModel(Button::Listener* itemButtonListener = nullptr);
     ~AddFilesListModel();
     
     int getNumRows() override;
@@ -44,6 +52,7 @@ public:
     void setDataset(Array<File>* newData);
     
 private:
+    Button::Listener* toggleButtonLis;
     Array<File>* dataset;
 
 };

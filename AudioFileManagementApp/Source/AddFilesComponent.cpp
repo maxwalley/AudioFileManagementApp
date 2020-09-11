@@ -12,13 +12,15 @@
 #include "AddFilesComponent.h"
 
 //==============================================================================
-AddFilesComponent::AddFilesComponent()
+AddFilesComponent::AddFilesComponent() : listModel(this)
 {
     setSize(600, 400);
     
     addAndMakeVisible(fileList);
     
     fileList.setModel(&listModel);
+    
+    fileList.setColour(ListBox::backgroundColourId, Colours::white);
 }
 
 AddFilesComponent::~AddFilesComponent()
@@ -69,4 +71,11 @@ bool AddFilesComponent::lookForFilesAndAdd()
         return true;
     }
     return false;
+}
+
+void AddFilesComponent::buttonClicked(Button* button)
+{
+    ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());
+    
+    DBG(rowComponent->getRowNum());    
 }
