@@ -27,6 +27,9 @@ public:
     
     void addButtonListener(Button::Listener* newListener);
     
+    bool getButtonState() const;
+    void setButtonState(bool newState, NotificationType sendNotification);
+    
     void setRowNum(int newRowNum);
     int getRowNum() const;
     

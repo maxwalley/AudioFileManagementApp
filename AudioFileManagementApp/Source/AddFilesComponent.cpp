@@ -77,5 +77,17 @@ void AddFilesComponent::buttonClicked(Button* button)
 {
     ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());
     
-    DBG(rowComponent->getRowNum());    
+    //Last row
+    if(rowComponent->getRowNum() + 1 == listModel.getNumRows())
+    {
+        for(int i = 0; i < listModel.getNumRows(); i++)
+        {
+            ToggleItem* componentToChange = dynamic_cast<ToggleItem*>(fileList.getComponentForRowNumber(i));
+            
+            if(componentToChange != nullptr)
+            {
+                componentToChange->setButtonState(button->getToggleState(), sendNotification);
+            }
+        }
+    }
 }

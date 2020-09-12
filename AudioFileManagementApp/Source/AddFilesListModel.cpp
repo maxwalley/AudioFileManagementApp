@@ -59,7 +59,15 @@ int ToggleItem::getRowNum() const
     return rowNumber;
 }
 
+bool ToggleItem::getButtonState() const
+{
+    return selectButton.getToggleState();
+}
 
+void ToggleItem::setButtonState(bool newState, NotificationType sendNotification)
+{
+    selectButton.setToggleState(newState, sendNotification);
+}
 
 AddFilesListModel::AddFilesListModel(Button::Listener* itemButtonListener) : toggleButtonLis(itemButtonListener), dataset(nullptr)
 {
@@ -78,7 +86,7 @@ int AddFilesListModel::getNumRows()
         return 0;
     }
     
-    return dataset->size();
+    return dataset->size() + 1;
 }
 
 void AddFilesListModel::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
@@ -107,7 +115,15 @@ Component* AddFilesListModel::refreshComponentForRow (int rowNum, bool isRowSele
     
     itemToReturn->setRowNum(rowNum);
     
-    itemToReturn->setItemText((*dataset)[rowNum].getFileName());
+    if(rowNum < getNumRows() - 1)
+    {
+        itemToReturn->setItemText((*dataset)[rowNum].getFileName());
+    }
+    //Last row
+    else
+    {
+        itemToReturn->setItemText("All Items");
+    }
     
     return itemToReturn;
 }
