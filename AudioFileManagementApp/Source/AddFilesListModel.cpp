@@ -96,11 +96,6 @@ void AddFilesListModel::paintListBoxItem (int rowNumber, Graphics &g, int width,
 
 Component* AddFilesListModel::refreshComponentForRow (int rowNum, bool isRowSelected, Component* existingComponent)
 {
-    if(rowNum >= getNumRows())
-    {
-        return nullptr;
-    }
-    
     ToggleItem* itemToReturn = dynamic_cast<ToggleItem*>(existingComponent);
     
     if(itemToReturn == nullptr)
