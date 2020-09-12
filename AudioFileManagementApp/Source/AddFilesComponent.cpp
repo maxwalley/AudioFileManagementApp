@@ -54,9 +54,29 @@ bool AddFilesComponent::lookForFilesAndAdd()
             {
                 Array<File> directoryFiles = filesToAdd[i].findChildFiles(File::findFiles, true);
                 
-                filesToAdd.insertArray(i+1, directoryFiles.data(), directoryFiles.size());
+                filesToAdd.insertArray(i + 1, directoryFiles.data(), directoryFiles.size());
                 
                 filesToAdd.remove(i);
+                
+                i--;
+            }
+            
+            //Unpacks a zip file
+            else if(filesToAdd[i].getFileExtension() == ".zip")
+            {
+                ZipFile zip(filesToAdd[i]);
+                
+                File newFolderToUnzipTo(filesToAdd[i].getFullPathName().trimCharactersAtEnd(".zip"));
+                
+                zip.uncompressTo(newFolderToUnzipTo);
+                
+                Array<File> directoryFiles = newFolderToUnzipTo.findChildFiles(File::findFiles, true);
+                
+                filesToAdd.insertArray(i + 1, directoryFiles.data(), directoryFiles.size());
+                
+                filesToAdd.remove(i);
+                
+                i--;
             }
         }
         
