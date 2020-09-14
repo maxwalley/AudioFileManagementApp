@@ -45,17 +45,15 @@ class AddFilesListModel : public ListBoxModel
 {
 public:
     //itemButtonListener is a listener for the ToggleButtons on the items. If this is nullptr no listener will be added when the buttons are created
-    AddFilesListModel(Button::Listener* itemButtonListener = nullptr);
+    AddFilesListModel(ValueTree dataModel, Button::Listener* itemButtonListener = nullptr);
     ~AddFilesListModel();
     
     int getNumRows() override;
     void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
     Component* refreshComponentForRow (int rowNum, bool isRowSelected, Component* existingComponent) override;
     
-    void setDataset(Array<File>* newData);
-    
 private:
     Button::Listener* toggleButtonLis;
-    Array<File>* dataset;
+    ValueTree dataToDisplay;
 
 };

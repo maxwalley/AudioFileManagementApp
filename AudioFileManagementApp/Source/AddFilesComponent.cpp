@@ -12,7 +12,20 @@
 #include "AddFilesComponent.h"
 
 //==============================================================================
-AddFilesComponent::AddFilesComponent() : listModel(this)
+
+int FileArraySorter::compareElements(File& first, File& second) const
+{
+    //If in the same directory
+    if(first.getParentDirectory() == second.getParentDirectory())
+    {
+        return first.getFileName().compareIgnoreCase(second.getFileName());
+    }
+    
+    return first.getParentDirectory().getFileName().compareIgnoreCase(second.getParentDirectory().getFileName());
+}
+
+
+AddFilesComponent::AddFilesComponent() : newFileData("NewFiles"), listModel(newFileData, this)
 {
     setSize(600, 400);
     
@@ -39,7 +52,7 @@ void AddFilesComponent::resized()
 
 bool AddFilesComponent::lookForFilesAndAdd()
 {
-    filesToAdd.clear();
+    Array<File> filesToAdd;
     
     FileChooser chooser("Select files to add");
     
@@ -85,7 +98,19 @@ bool AddFilesComponent::lookForFilesAndAdd()
             return false;
         }
         
-        listModel.setDataset(&filesToAdd);
+        FileArraySorter arraySorter;
+        filesToAdd.sort(arraySorter);
+        
+        //Move this data into a value tree
+        //Have the model work from the valueTree
+        
+        std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
+        {
+            ValueTree fileTree("File");
+            fileTree.setProperty("Path", file.getFullPathName(), nullptr);
+            newFileData.addChild(fileTree, -1, nullptr);
+        });
+        
         fileList.updateContent();
         
         return true;

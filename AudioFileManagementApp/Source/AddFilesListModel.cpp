@@ -69,7 +69,7 @@ void ToggleItem::setButtonState(bool newState, NotificationType sendNotification
     selectButton.setToggleState(newState, sendNotification);
 }
 
-AddFilesListModel::AddFilesListModel(Button::Listener* itemButtonListener) : toggleButtonLis(itemButtonListener), dataset(nullptr)
+AddFilesListModel::AddFilesListModel(ValueTree dataModel, Button::Listener* itemButtonListener) : toggleButtonLis(itemButtonListener), dataToDisplay(dataModel)
 {
     
 }
@@ -81,12 +81,13 @@ AddFilesListModel::~AddFilesListModel()
 
 int AddFilesListModel::getNumRows()
 {
-    if(dataset == nullptr)
-    {
-        return 0;
-    }
+    int numFiles = dataToDisplay.getNumChildren();
     
-    return dataset->size() + 1;
+    if(numFiles > 0)
+    {
+        return ++numFiles;
+    }
+    return 0;
 }
 
 void AddFilesListModel::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
@@ -112,7 +113,10 @@ Component* AddFilesListModel::refreshComponentForRow (int rowNum, bool isRowSele
     
     if(rowNum < getNumRows() - 1)
     {
-        itemToReturn->setItemText((*dataset)[rowNum].getFileName());
+        String fileName = dataToDisplay.getChild(rowNum).getProperty("Path");
+        
+        fileName = fileName.fromLastOccurrenceOf("/", false, false);
+        itemToReturn->setItemText(fileName);
     }
     //Last row
     else
@@ -121,9 +125,4 @@ Component* AddFilesListModel::refreshComponentForRow (int rowNum, bool isRowSele
     }
     
     return itemToReturn;
-}
-
-void AddFilesListModel::setDataset(Array<File>* newData)
-{
-    dataset = newData;
 }

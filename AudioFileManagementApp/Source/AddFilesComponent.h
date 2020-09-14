@@ -18,6 +18,12 @@
 */
 using namespace juce;
 
+class FileArraySorter
+{
+public:
+    int compareElements(File& first, File& second) const;
+};
+
 class AddFilesComponent  : public Component,
                            public Button::Listener
 {
@@ -36,7 +42,7 @@ private:
     
     void buttonClicked(Button* button) override;
     
-    Array<File> filesToAdd;
+    ValueTree newFileData;
     ListBox fileList;
     AddFilesListModel listModel;
     
