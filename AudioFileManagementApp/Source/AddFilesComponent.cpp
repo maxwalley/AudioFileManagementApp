@@ -34,6 +34,8 @@ AddFilesComponent::AddFilesComponent() : newFileData("NewFiles"), listModel(newF
     fileList.setModel(&listModel);
     
     fileList.setColour(ListBox::backgroundColourId, Colours::white);
+    
+    addAndMakeVisible(test);
 }
 
 AddFilesComponent::~AddFilesComponent()

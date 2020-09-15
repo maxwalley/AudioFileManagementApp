@@ -40,6 +40,8 @@ public:
 
 private:
     
+    ErrorSymbol test;
+    
     void buttonClicked(Button* button) override;
     
     ValueTree newFileData;

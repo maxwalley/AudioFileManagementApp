@@ -11,7 +11,64 @@
 #include "AddFilesListModel.h"
 #include "AddFilesComponent.h"
 
-ToggleItem::ToggleItem()
+ErrorSymbol::ErrorSymbol()
+{
+    
+}
+
+ErrorSymbol::~ErrorSymbol()
+{
+    
+}
+
+void ErrorSymbol::paint(Graphics& g)
+{
+    Path outline;
+    
+    outline.addTriangle(Point<float>(0, getHeight()), Point<float>(getWidth() / 2, 0), Point<float>(getWidth(), getHeight()));
+    
+    outline = outline.createPathWithRoundedCorners(4.0);
+    
+    g.setColour(Colours::red);
+    
+    g.fillPath(outline);
+    
+    g.setColour(Colours::white);
+    
+    float width = float(getWidth());
+    float height = float(getHeight());
+    
+    float rectWidth = width / 9.0f;
+    float circWidth = width / 7.0f;
+    
+    g.fillRect((width / 2.0f - 1.0f), height / 3.25f, rectWidth, height / 3.0f);
+    
+    g.fillEllipse((width / 2.0f - 1.0f), height / 4.0f * 3.0f, circWidth, height / 7.0f);
+}
+
+
+ListItem::ListItem()
+{
+    
+}
+
+ListItem::~ListItem()
+{
+    
+}
+
+void ListItem::setRowNum(int newRowNum)
+{
+    rowNumber = newRowNum;
+}
+
+int ListItem::getRowNum() const
+{
+    return rowNumber;
+}
+
+
+ToggleItem::ToggleItem() : completed(false)
 {
     addAndMakeVisible(selectButton);
     addAndMakeVisible(textLabel);
@@ -21,6 +78,8 @@ ToggleItem::ToggleItem()
     selectButton.setColour(ToggleButton::tickColourId, Colours::black);
     
     textLabel.setColour(Label::textColourId, Colours::black);
+    
+    addAndMakeVisible(notCompletedSymbol);
 }
 
 ToggleItem::~ToggleItem()
@@ -30,13 +89,13 @@ ToggleItem::~ToggleItem()
 
 void ToggleItem::resized()
 {
-    textLabel.setBounds(0, 0, getWidth() / 6 * 5, getHeight());
+    textLabel.setBounds(getHeight(), 0, getWidth() / 6 * 4 + getHeight(), getHeight());
     selectButton.setBounds(getWidth() / 6 * 5, 0, getHeight(), getHeight());
-}
-
-void ToggleItem::paint(Graphics& g)
-{
     
+    if(!completed)
+    {
+        notCompletedSymbol.setBounds(2, 2, getHeight() - 4, getHeight() - 4);
+    }
 }
 
 void ToggleItem::setItemText(const String& newText)
@@ -49,16 +108,6 @@ void ToggleItem::addButtonListener(Button::Listener* newListener)
     selectButton.addListener(newListener);
 }
 
-void ToggleItem::setRowNum(int newRowNum)
-{
-    rowNumber = newRowNum;
-}
-
-int ToggleItem::getRowNum() const
-{
-    return rowNumber;
-}
-
 bool ToggleItem::getButtonState() const
 {
     return selectButton.getToggleState();
@@ -67,6 +116,16 @@ bool ToggleItem::getButtonState() const
 void ToggleItem::setButtonState(bool newState, NotificationType sendNotification)
 {
     selectButton.setToggleState(newState, sendNotification);
+}
+
+bool ToggleItem::getCompleted() const
+{
+    return completed;
+}
+
+void ToggleItem::setCompleted(bool newCompleted)
+{
+    completed = newCompleted;
 }
 
 AddFilesListModel::AddFilesListModel(ValueTree dataModel, Button::Listener* itemButtonListener) : toggleButtonLis(itemButtonListener), dataToDisplay(dataModel)

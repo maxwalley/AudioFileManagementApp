@@ -13,15 +13,39 @@
 #include <JuceHeader.h>
 
 using namespace juce;
+ 
+class ErrorSymbol : public Component
+{
+public:
+    ErrorSymbol();
+    ~ErrorSymbol();
+    
+    void paint(Graphics& g) override;
+    
+private:
+};
 
-class ToggleItem : public Component
+class ListItem
+{
+public:
+    ListItem();
+    ~ListItem();
+    
+    void setRowNum(int newRowNum);
+    int getRowNum() const;
+    
+private:
+    int rowNumber;
+};
+
+class ToggleItem : public Component,
+                   public ListItem
 {
 public:
     ToggleItem();
     ~ToggleItem();
     
     void resized() override;
-    void paint(Graphics& g) override;
     
     void setItemText(const String& newText);
     
@@ -30,14 +54,15 @@ public:
     bool getButtonState() const;
     void setButtonState(bool newState, NotificationType sendNotification);
     
-    void setRowNum(int newRowNum);
-    int getRowNum() const;
+    bool getCompleted() const;
+    void setCompleted(bool newCompleted);
     
 private:
     ToggleButton selectButton;
     Label textLabel;
+    ErrorSymbol notCompletedSymbol;
     
-    int rowNumber;
+    bool completed;
 };
 
 
