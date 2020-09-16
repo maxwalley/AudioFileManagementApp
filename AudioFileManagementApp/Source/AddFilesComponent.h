@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 #include "AddFilesListModel.h"
+#include "AddFilesParameterEditor.h"
 
 //==============================================================================
 /*
@@ -47,6 +48,8 @@ private:
     ValueTree newFileData;
     ListBox fileList;
     AddFilesListModel listModel;
+    
+    AddFilesParameterEditor paramEditor;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesComponent)
 };

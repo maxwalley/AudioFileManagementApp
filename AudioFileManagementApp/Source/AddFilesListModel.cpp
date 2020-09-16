@@ -89,8 +89,8 @@ ToggleItem::~ToggleItem()
 
 void ToggleItem::resized()
 {
-    textLabel.setBounds(getHeight(), 0, getWidth() / 6 * 4 + getHeight(), getHeight());
-    selectButton.setBounds(getWidth() / 6 * 5, 0, getHeight(), getHeight());
+    textLabel.setBounds(getHeight(), 0, getWidth() / 6 * 5 - (getHeight() * 2), getHeight());
+    selectButton.setBounds(getWidth() - getHeight(), 0, getHeight(), getHeight());
     
     if(!completed)
     {

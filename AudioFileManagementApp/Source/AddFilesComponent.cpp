@@ -36,6 +36,8 @@ AddFilesComponent::AddFilesComponent() : newFileData("NewFiles"), listModel(newF
     fileList.setColour(ListBox::backgroundColourId, Colours::white);
     
     addAndMakeVisible(test);
+    
+    addAndMakeVisible(paramEditor);
 }
 
 AddFilesComponent::~AddFilesComponent()
@@ -49,7 +51,8 @@ void AddFilesComponent::paint (juce::Graphics& g)
 
 void AddFilesComponent::resized()
 {
-    fileList.setBounds(0, 0, getWidth() / 3, getHeight());
+    fileList.setBounds(0, 0, getWidth() / 2, getHeight());
+    paramEditor.setBounds(getWidth() / 2, 0, getWidth() / 2, getHeight());
 }
 
 bool AddFilesComponent::lookForFilesAndAdd()

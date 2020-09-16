@@ -31,6 +31,14 @@
             file="Source/AddFilesListModel.h"/>
       <FILE id="pf9new" name="AddFilesListModel.cpp" compile="1" resource="0"
             file="Source/AddFilesListModel.cpp"/>
+      <FILE id="wemZrf" name="AddFilesParameterEditor.h" compile="0" resource="0"
+            file="Source/AddFilesParameterEditor.h"/>
+      <FILE id="IioZKH" name="AddFilesParameterEditor.cpp" compile="1" resource="0"
+            file="Source/AddFilesParameterEditor.cpp"/>
+      <FILE id="l5dXDF" name="HierachicalListBrowser.h" compile="0" resource="0"
+            file="Source/HierachicalListBrowser.h"/>
+      <FILE id="rfcASX" name="HierachicalListBrowser.cpp" compile="1" resource="0"
+            file="Source/HierachicalListBrowser.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
