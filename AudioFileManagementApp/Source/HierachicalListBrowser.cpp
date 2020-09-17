@@ -51,7 +51,22 @@ int HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree tree
         {
             tree.setProperty("YLocation", yCoord, nullptr);
             
-            g.drawText(tree.getProperty("Name"), thisIndentation + 10, yCoord, getWidth() - thisIndentation, 20, juce::Justification::left);
+            juce::Rectangle<float> textArea(thisIndentation + 10, yCoord, getWidth() - (thisIndentation + 10), 20);
+            
+            if(tree.getProperty("Highlight"))
+            {
+                g.setColour(juce::Colours::black);
+                g.fillRect(textArea);
+                g.setColour(juce::Colours::white);
+            }
+            else
+            {
+                g.setColour(juce::Colours::black);
+            }
+            
+            g.drawText(tree.getProperty("Name"), textArea, juce::Justification::left);
+            
+            g.setColour(juce::Colours::black);
             
             if(tree.getNumChildren() == 0)
             {
@@ -104,12 +119,33 @@ void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
                 //if the child that has been identified as possibly being clicked has no children or is not open we know it is this that has been clicked
                 if(treeToSearch.getChild(i).getNumChildren() == 0 || !treeToSearch.getChild(i).getProperty("Opened") || mouseY < float(treeToSearch.getChild(i).getProperty("YLocation")) + 20)
                 {
-                    //Checks its indentation
-                    if(event.getMouseDownX() > indentationIndex * 10 && event.getMouseDownX() < (indentationIndex + 1) * 10)
+                    //Checks the indentation of the click in reference to the indentation of the value
+                    if(event.getMouseDownX() > indentationIndex * 10)
                     {
-                        DBG(juce::String(treeToSearch.getChild(i).getProperty("Name")));
-                        found = true;
+                        //If the symbol has been clicked
+                        if(event.getMouseDownX() < (indentationIndex + 1) * 10)
+                        {
+                            //If it has no children then it can not be opened or closed
+                            if(treeToSearch.getChild(i).getNumChildren() > 0)
+                            {
+                                //Inverse whether its opened
+                                treeToSearch.getChild(i).setProperty("Opened", !treeToSearch.getChild(i).getProperty("Opened"), nullptr);
+                            }
+                        }
+                        else
+                        {
+                            if(treeToSearch.getChild(i).hasProperty("Highlight"))
+                            {
+                                treeToSearch.getChild(i).setProperty("Highlight", !treeToSearch.getChild(i).getProperty("Highlight"), nullptr);
+                            }
+                            else
+                            {
+                                treeToSearch.getChild(i).setProperty("Highlight", true, nullptr);
+                            }
+                        }
+                        repaint();
                     }
+                    found = true;
                 }
                 //If it is open we go into its chilren
                 else
