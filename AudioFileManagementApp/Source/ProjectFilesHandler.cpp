@@ -112,7 +112,8 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
     else
     {
         XmlElement tree("Data");
-        
+        tree.createNewChildElement("Catagories");
+        tree.createNewChildElement("FX");
         return tree;
     }
 }
@@ -133,11 +134,11 @@ std::optional<ValueTree> ProjectFilesHandler::parseAndCheckFile (ProjectFile typ
     
     ValueTree treeFromData = ValueTree::fromXml(*parsedXml);
     
+    //Runs through the elements testing them
+    ValueTree testerTree;
+    
     if(typeOfFileToCheck == ProjectFile::projectSettings)
     {
-        //Runs through the elements testing them
-        ValueTree testerTree;
-        
         testerTree = treeFromData.getChildWithName("ProjectData");
         
         //Doesn't have the element or the attribute
@@ -147,6 +148,14 @@ std::optional<ValueTree> ProjectFilesHandler::parseAndCheckFile (ProjectFile typ
         }
         
         return treeFromData;
+    }
+    
+    //Project Data XML
+    
+    //if it doesnt have these two children
+    if(!treeFromData.getChildWithName("Catagories").isValid() || !treeFromData.getChildWithName("FX").isValid())
+    {
+        return std::nullopt;
     }
     
     //Project data xml

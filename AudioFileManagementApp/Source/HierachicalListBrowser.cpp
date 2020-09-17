@@ -72,7 +72,7 @@ int HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree tree
                 g.drawLine(thisIndentation + 9, yCoord + 6, thisIndentation + 5, yCoord + 14, 1.5);
                 
                 yCoord+=20;
-                yCoord = drawChildren(g, tree, yCoord, ++indentationIndex);
+                yCoord = drawChildren(g, tree, yCoord, indentationIndex + 1);
             }
         }
     });
@@ -82,34 +82,41 @@ int HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree tree
 
 void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
 {
-    if(event.getMouseDownX() < 10)
+    bool found = false;
+    juce::ValueTree treeToSearch = dataToDisplay;
+    
+    //Finds the lowest position on the tree and rejects anything lower than this
+    int maximumY = getBottomNode(treeToSearch).getProperty("YLocation");
+    if(event.getMouseDownY() < maximumY + 20)
     {
-        bool found = false;
-        juce::ValueTree treeToSearch = dataToDisplay;
-        
-        int maximumY = getBottomNode(treeToSearch).getProperty("YLocation");
-        
-        if(event.getMouseDownY() < maximumY + 20)
+        //Everytime a new child is explored the indentation index is put up one
+        int indentationIndex = 0;
+            
+        for(int i = 0; i < treeToSearch.getNumChildren() && found == false; i++)
         {
-        
-            for(int i = 0; i < treeToSearch.getNumChildren() && found == false; i++)
+            //Goes through the children until the one lower than the one being checked is invalid or lower than the click point
+            juce::ValueTree childToCheck = treeToSearch.getChild(i + 1);
+            
+            int mouseY = event.getMouseDownY();
+            
+            if(float(childToCheck.getProperty("YLocation")) > mouseY || !childToCheck.isValid())
             {
-                juce::ValueTree childToCheck = treeToSearch.getChild(i + 1);
-            
-                int mouseY = event.getMouseDownY();
-            
-                if(float(childToCheck.getProperty("YLocation")) > mouseY || !childToCheck.isValid())
+                //if the child that has been identified as possibly being clicked has no children or is not open we know it is this that has been clicked
+                if(treeToSearch.getChild(i).getNumChildren() == 0 || !treeToSearch.getChild(i).getProperty("Opened") || mouseY < float(treeToSearch.getChild(i).getProperty("YLocation")) + 20)
                 {
-                    if(treeToSearch.getChild(i).getNumChildren() == 0 || !treeToSearch.getChild(i).getProperty("Opened") || mouseY < float(treeToSearch.getChild(i).getProperty("YLocation")) + 20)
+                    //Checks its indentation
+                    if(event.getMouseDownX() > indentationIndex * 10 && event.getMouseDownX() < (indentationIndex + 1) * 10)
                     {
                         DBG(juce::String(treeToSearch.getChild(i).getProperty("Name")));
                         found = true;
                     }
-                    else
-                    {
-                        treeToSearch = treeToSearch.getChild(i);
-                        i = -1;
-                    }
+                }
+                //If it is open we go into its chilren
+                else
+                {
+                    treeToSearch = treeToSearch.getChild(i);
+                    i = -1;
+                    indentationIndex+=1;
                 }
             }
         }
