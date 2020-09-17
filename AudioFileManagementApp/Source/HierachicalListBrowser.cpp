@@ -12,7 +12,7 @@
 #include "HierachicalListBrowser.h"
 
 //==============================================================================
-HierachicalListBrowser::HierachicalListBrowser()
+HierachicalListBrowser::HierachicalListBrowser() : dataFormatted(false)
 {
     
 }
@@ -23,7 +23,7 @@ HierachicalListBrowser::~HierachicalListBrowser()
 
 void HierachicalListBrowser::paint (juce::Graphics& g)
 {
-    if(dataToDisplay.isValid())
+    if(dataFormatted)
     {
         drawChildren(g, dataToDisplay);
     }
@@ -31,129 +31,172 @@ void HierachicalListBrowser::paint (juce::Graphics& g)
 
 void HierachicalListBrowser::resized()
 {
-    
+    if(dataFormatted)
+    {
+        drawLabels(dataToDisplay);
+    }
 }
 
 void HierachicalListBrowser::setDataToDisplay(juce::ValueTree newData)
 {
     dataToDisplay = newData;
+    refresh();
+}
+
+void HierachicalListBrowser::refresh()
+{
+    nameLabels.resize(getNumberOfViewableNodes(dataToDisplay));
+    
+    std::for_each(nameLabels.begin(), nameLabels.end(), [this](std::unique_ptr<juce::Label>& label)
+    {
+        if(label == nullptr)
+        {
+            label = std::make_unique<juce::Label>();
+            label->setJustificationType(juce::Justification::left);
+            label->addListener(this);
+            label->addMouseListener(this, true);
+            label->setComponentID("label");
+        }
+        addAndMakeVisible(label.get());
+    });
+    
+    formatTree(dataToDisplay);
+    dataFormatted = true;
+    resized();
     repaint();
 }
 
-int HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw, int startY, int indentationIndex)
+void HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw)
 {
-    int yCoord = startY;
-    int thisIndentation = indentationIndex * 10;
-    
-    std::for_each(treeToDraw.begin(), treeToDraw.end(), [this, &g, &indentationIndex, &yCoord, thisIndentation](juce::ValueTree tree)
+    std::for_each(treeToDraw.begin(), treeToDraw.end(), [this, &g](juce::ValueTree tree)
     {
         if(tree.getType() == juce::Identifier("Catagory"))
         {
-            tree.setProperty("YLocation", yCoord, nullptr);
-            
-            juce::Rectangle<float> textArea(thisIndentation + 10, yCoord, getWidth() - (thisIndentation + 10), 20);
-            
-            if(tree.getProperty("Highlight"))
-            {
-                g.setColour(juce::Colours::black);
-                g.fillRect(textArea);
-                g.setColour(juce::Colours::white);
-            }
-            else
-            {
-                g.setColour(juce::Colours::black);
-            }
-            
-            g.drawText(tree.getProperty("Name"), textArea, juce::Justification::left);
+            int yLocation = tree.getProperty("YLocation");
+            int indentation = int(tree.getProperty("Indentation")) * 10;
             
             g.setColour(juce::Colours::black);
             
             if(tree.getNumChildren() == 0)
             {
-                g.drawLine(thisIndentation + 1, yCoord + 10, thisIndentation + 7, yCoord + 10, 1.5);
-                yCoord+=20;
+                g.drawLine(indentation + 1, yLocation + 10, indentation + 7, yLocation + 10, 1.5);
             }
             
             else if(!tree.getProperty("Opened"))
             {
-                g.drawLine(thisIndentation + 1, yCoord + 6, thisIndentation + 7, yCoord + 10, 1.5);
-                g.drawLine(thisIndentation + 1, yCoord + 14, thisIndentation + 7, yCoord + 10, 1.5);
-                yCoord+=20;
+                g.drawLine(indentation + 1, yLocation + 6, indentation + 7, yLocation + 10, 1.5);
+                g.drawLine(indentation + 1, yLocation + 14, indentation + 7, yLocation + 10, 1.5);
             }
             
             else if(tree.getProperty("Opened"))
             {
-                g.drawLine(thisIndentation + 1, yCoord + 6, thisIndentation + 5, yCoord + 14, 1.5);
-                g.drawLine(thisIndentation + 9, yCoord + 6, thisIndentation + 5, yCoord + 14, 1.5);
+                g.drawLine(indentation + 1, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
+                g.drawLine(indentation + 9, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
                 
-                yCoord+=20;
-                yCoord = drawChildren(g, tree, yCoord, indentationIndex + 1);
+                drawChildren(g, tree);
             }
         }
     });
+}
+
+void HierachicalListBrowser::drawLabels(juce::ValueTree treeToDraw)
+{
+    for(int i = 0; i < treeToDraw.getNumChildren(); i++)
+    {
+        juce::ValueTree currentTree = treeToDraw.getChild(i);
+        int yLoc = currentTree.getProperty("YLocation");
+        int indent = int(currentTree.getProperty("Indentation")) * 10;
+        
+        nameLabels[yLoc / 20]->setBounds(indent + 10, yLoc, getWidth() - (indent + 10), 20);
+        
+        if(treeToDraw.getChild(i).getProperty("Highlight"))
+        {
+            nameLabels[yLoc / 20]->setColour(juce::Label::backgroundColourId, juce::Colours::black);
+            nameLabels[yLoc / 20]->setColour(juce::Label::textColourId, juce::Colours::white);
+        }
+        else
+        {
+            nameLabels[yLoc / 20]->setColour(juce::Label::backgroundColourId, juce::Colours::silver);
+            nameLabels[yLoc / 20]->setColour(juce::Label::textColourId, juce::Colours::black);
+        }
+        
+        nameLabels[yLoc / 20]->setEditable(false, treeToDraw.getChild(i).getProperty("Renameable"));
+        
+        if(currentTree.getNumChildren() > 0 && currentTree.getProperty("Opened"))
+        {
+            drawLabels(currentTree);
+        }
+    }
+}
+
+int HierachicalListBrowser::formatTree(juce::ValueTree inputTree, int startY, int startIndentationIndex)
+{
+    std::for_each(inputTree.begin(), inputTree.end(), [this, &startY, &startIndentationIndex](juce::ValueTree tree)
+    {
+        if(!tree.hasProperty("Opened"))
+        {
+            tree.setProperty("Opened", false, nullptr);
+        }
+        
+        if(!tree.hasProperty("Highlight"))
+        {
+            tree.setProperty("Highlight", false, nullptr);
+        }
+        
+        if(!tree.hasProperty("Renameable"))
+        {
+            tree.setProperty("Renameable", false, nullptr);
+        }
+        
+        tree.setProperty("YLocation", startY, nullptr);
+        tree.setProperty("Indentation", startIndentationIndex, nullptr);
+        
+        nameLabels[startY / 20]->setText(tree.getProperty("Name"), juce::dontSendNotification);
+        
+        startY+=20;
+        
+        if(tree.getNumChildren() > 0 && tree.getProperty("Opened"))
+        {
+            startY = formatTree(tree, startY, startIndentationIndex + 1);
+        }
+    });
+    return startY;
+}
+
+void HierachicalListBrowser::labelTextChanged(juce::Label* label)
+{
+    juce::ValueTree labelTree = getNodeAtYVal(label->getY(), dataToDisplay);
     
-    return yCoord;
+    labelTree.setProperty("Name", label->getText(), nullptr);
 }
 
 void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
 {
-    bool found = false;
-    juce::ValueTree treeToSearch = dataToDisplay;
+    if(event.originalComponent->getComponentID() == "label")
+    {
+        juce::ValueTree labelTree = getNodeAtYVal(event.originalComponent->getY(), dataToDisplay);
+        
+        labelTree.setProperty("Highlight", !labelTree.getProperty("Highlight"), nullptr);
+        refresh();
+        return;
+    }
     
     //Finds the lowest position on the tree and rejects anything lower than this
-    int maximumY = getBottomNode(treeToSearch).getProperty("YLocation");
+    int maximumY = getBottomNode(dataToDisplay).getProperty("YLocation");
     if(event.getMouseDownY() < maximumY + 20)
     {
-        //Everytime a new child is explored the indentation index is put up one
-        int indentationIndex = 0;
-            
-        for(int i = 0; i < treeToSearch.getNumChildren() && found == false; i++)
+        juce::ValueTree clickedTree = getNodeAtYVal(event.getMouseDownY(), dataToDisplay);
+        
+        int indentation = int(clickedTree.getProperty("Indentation")) * 10;
+        
+        if(event.getMouseDownX() > indentation && event.getMouseDownX() < indentation + 10)
         {
-            //Goes through the children until the one lower than the one being checked is invalid or lower than the click point
-            juce::ValueTree childToCheck = treeToSearch.getChild(i + 1);
-            
-            int mouseY = event.getMouseDownY();
-            
-            if(float(childToCheck.getProperty("YLocation")) > mouseY || !childToCheck.isValid())
+            //A tree with no children cannot be opened
+            if(clickedTree.getNumChildren() > 0)
             {
-                //if the child that has been identified as possibly being clicked has no children or is not open we know it is this that has been clicked
-                if(treeToSearch.getChild(i).getNumChildren() == 0 || !treeToSearch.getChild(i).getProperty("Opened") || mouseY < float(treeToSearch.getChild(i).getProperty("YLocation")) + 20)
-                {
-                    //Checks the indentation of the click in reference to the indentation of the value
-                    if(event.getMouseDownX() > indentationIndex * 10)
-                    {
-                        //If the symbol has been clicked
-                        if(event.getMouseDownX() < (indentationIndex + 1) * 10)
-                        {
-                            //If it has no children then it can not be opened or closed
-                            if(treeToSearch.getChild(i).getNumChildren() > 0)
-                            {
-                                //Inverse whether its opened
-                                treeToSearch.getChild(i).setProperty("Opened", !treeToSearch.getChild(i).getProperty("Opened"), nullptr);
-                            }
-                        }
-                        else
-                        {
-                            if(treeToSearch.getChild(i).hasProperty("Highlight"))
-                            {
-                                treeToSearch.getChild(i).setProperty("Highlight", !treeToSearch.getChild(i).getProperty("Highlight"), nullptr);
-                            }
-                            else
-                            {
-                                treeToSearch.getChild(i).setProperty("Highlight", true, nullptr);
-                            }
-                        }
-                        repaint();
-                    }
-                    found = true;
-                }
-                //If it is open we go into its chilren
-                else
-                {
-                    treeToSearch = treeToSearch.getChild(i);
-                    i = -1;
-                    indentationIndex+=1;
-                }
+                clickedTree.setProperty("Opened", !clickedTree.getProperty("Opened"), nullptr);
+                
+                refresh();
             }
         }
     }
@@ -170,5 +213,42 @@ juce::ValueTree HierachicalListBrowser::getBottomNode(juce::ValueTree inputTree)
     else
     {
         return getBottomNode(lastChild);
+    }
+}
+
+const int HierachicalListBrowser::getNumberOfViewableNodes(juce::ValueTree inputTree) const
+{
+    int count = 0;
+    
+    std::for_each(inputTree.begin(), inputTree.end(), [this, &count](juce::ValueTree tree)
+    {
+        count++;
+        
+        if(tree.getProperty("Opened"))
+        {
+            count += getNumberOfViewableNodes(tree);
+        }
+    });
+    
+    return count;
+}
+
+juce::ValueTree HierachicalListBrowser::getNodeAtYVal(int yVal, juce::ValueTree treeToSearch) const
+{
+    for(int i = 0; i < treeToSearch.getNumChildren(); i++)
+    {
+        juce::ValueTree testTree = treeToSearch.getChild(i + 1);
+        
+        if(int(testTree.getProperty("YLocation")) > yVal || !testTree.isValid())
+        {
+            juce::ValueTree evalTree = treeToSearch.getChild(i);
+            
+            if(evalTree.getNumChildren() == 0 || !evalTree.getProperty("Opened") || yVal < int(evalTree.getProperty("YLocation")) + 20)
+            {
+                return evalTree;
+            }
+            
+            return getNodeAtYVal(yVal, evalTree);
+        }
     }
 }
