@@ -26,10 +26,13 @@ private:
     
 };
 
-
+/*
+ The class keeps a copy of the data to display and then the original one to edit. This means that loads of useless display propertys dont get swept up into the main ValueTree. Also this means multiple instances running of the same ValueTrees can run at once.
+*/
 class HierachicalListBrowser  : public juce::Component,
                                 public juce::Label::Listener,
-                                public juce::Button::Listener
+                                public juce::Button::Listener,
+                                public juce::ValueTree::Listener
 {
 public:
     HierachicalListBrowser();
@@ -62,9 +65,13 @@ private:
     
     void buttonClicked(juce::Button* button) override;
     
+    void valueTreeChildAdded(juce::ValueTree& parentTree, juce::ValueTree& childWhichHasBeenAdded) override;
+    
+    void valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier& property) override;
+    
     void addChildrenToHighlights(juce::ValueTree tree);
     
-    juce::ValueTree getBottomNode(juce::ValueTree inputTree);
+    juce::ValueTree getBottomNode(juce::ValueTree inputTree) const;
     
     const int getNumberOfViewableNodes(juce::ValueTree inputTree) const;
     
@@ -72,9 +79,18 @@ private:
     
     juce::StringArray getHighlightedForTree(juce::ValueTree treeToSearch) const;
     
-    //Affect top tree will chose whether the top level of the tree is affected
-    void setAllPropertiesInATree(juce::ValueTree inputTree, juce::Identifier property, juce::var val, bool affectTopTree, bool recursive);
+    juce::ValueTree getTopParentNode(juce::ValueTree inputTree) const;
     
+    //Comparison based on name property
+    bool compareChildren(const juce::ValueTree& first, const juce::ValueTree& second) const;
+    
+    //Based on name
+    juce::ValueTree findTreeInOtherTree(const juce::ValueTree& treeToFind, const juce::ValueTree& treeToSearch) const;
+    
+    //Affect top tree will chose whether the top level of the tree is affected
+    void setAllPropertiesInATree(juce::ValueTree inputTree, const juce::Identifier& property, const juce::var& val, bool affectTopTree, bool recursive);
+    
+    juce::ValueTree originalData;
     juce::ValueTree dataToDisplay;
     
     bool dataFormatted;

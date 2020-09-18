@@ -42,6 +42,9 @@ HierachicalListBrowser::HierachicalListBrowser() : dataFormatted(false), folderN
     addAndMakeVisible(addButton);
     addButton.setColour(juce::TextButton::buttonColourId, juce::Colours::lightgrey);
     addButton.addListener(this);
+    
+    dataToDisplay.addListener(this);
+    originalData.addListener(this);
 }
 
 HierachicalListBrowser::~HierachicalListBrowser()
@@ -74,7 +77,9 @@ void HierachicalListBrowser::resized()
 
 void HierachicalListBrowser::setDataToDisplay(juce::ValueTree newData)
 {
+    originalData = newData;
     dataToDisplay = newData.createCopy();
+    
     refresh();
 }
 
@@ -242,7 +247,6 @@ void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
         juce::ValueTree labelTree = getNodeAtYVal(event.originalComponent->getY(), dataToDisplay);
         
         labelTree.setProperty("Highlight", !labelTree.getProperty("Highlight"), nullptr);
-        refresh();
         return;
     }
     
@@ -265,8 +269,6 @@ void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
                 {
                     setAllPropertiesInATree(clickedTree, "Highlight", false, false, true);
                 }
-                
-                refresh();
             }
         }
     }
@@ -277,8 +279,45 @@ void HierachicalListBrowser::buttonClicked(juce::Button* button)
     if(button == &addButton)
     {
         addChildrenToHighlights(dataToDisplay);
-        refresh();
     }
+}
+
+void HierachicalListBrowser::valueTreeChildAdded(juce::ValueTree &parentTree, juce::ValueTree &childWhichHasBeenAdded)
+{
+    //This property stops it from recursively adding
+    if(childWhichHasBeenAdded.hasProperty("Stop"))
+    {
+        childWhichHasBeenAdded.removeProperty("Stop", nullptr);
+        return;
+    }
+    
+    int newChildIndex = parentTree.indexOf(childWhichHasBeenAdded);
+    juce::ValueTree newChild = childWhichHasBeenAdded.createCopy();
+    
+    newChild.setProperty("Stop", true, nullptr);
+    
+    parentTree.removeChild(childWhichHasBeenAdded, nullptr);
+    
+    juce::ValueTree parentInOtherTree;
+    
+    if(getTopParentNode(parentTree) == originalData.getParent())
+    {
+        parentInOtherTree = findTreeInOtherTree(parentTree, dataToDisplay);
+    }
+    else if(getTopParentNode(parentTree) == dataToDisplay)
+    {
+        parentInOtherTree = findTreeInOtherTree(parentTree, originalData);
+    }
+    
+    parentTree.addChild(newChild.createCopy(), newChildIndex, nullptr);
+    parentInOtherTree.addChild(newChild.createCopy(), newChildIndex, nullptr);
+    
+    refresh();
+}
+
+void HierachicalListBrowser::valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier& property)
+{
+    refresh();
 }
 
 void HierachicalListBrowser::addChildrenToHighlights(juce::ValueTree tree)
@@ -306,7 +345,7 @@ void HierachicalListBrowser::addChildrenToHighlights(juce::ValueTree tree)
     };
 }
 
-juce::ValueTree HierachicalListBrowser::getBottomNode(juce::ValueTree inputTree)
+juce::ValueTree HierachicalListBrowser::getBottomNode(juce::ValueTree inputTree) const
 {
     juce::ValueTree lastChild;
     
@@ -416,7 +455,7 @@ juce::StringArray HierachicalListBrowser::getHighlightedForTree(juce::ValueTree 
     return arrayToReturn;
 }
 
-void HierachicalListBrowser::setAllPropertiesInATree(juce::ValueTree inputTree, juce::Identifier property, juce::var val, bool affectTopTree, bool recursive)
+void HierachicalListBrowser::setAllPropertiesInATree(juce::ValueTree inputTree, const juce::Identifier& property, const juce::var& val, bool affectTopTree, bool recursive)
 {
     if(affectTopTree)
     {
@@ -440,4 +479,61 @@ void HierachicalListBrowser::setAllPropertiesInATree(juce::ValueTree inputTree, 
             }
         }
     }
+}
+
+juce::ValueTree HierachicalListBrowser::getTopParentNode(juce::ValueTree inputTree) const
+{
+    if(!inputTree.getParent().isValid())
+    {
+        return inputTree;
+    }
+    return getTopParentNode(inputTree.getParent());
+}
+
+bool HierachicalListBrowser::compareChildren(const juce::ValueTree& first, const juce::ValueTree& second) const
+{
+    if(first.getNumChildren() != second.getNumChildren())
+    {
+        return false;
+    }
+    
+    for(int i = 0; i < first.getNumChildren(); i++)
+    {
+        if(first.getChild(i).getProperty("Name") != second.getChild(i).getProperty("Name"))
+        {
+            return false;
+        }
+        
+        if(first.getChild(i).getNumChildren() > 0)
+        {
+            if(!compareChildren(first.getChild(i), second.getChild(i)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+juce::ValueTree HierachicalListBrowser::findTreeInOtherTree(const juce::ValueTree& treeToFind, const juce::ValueTree& treeToSearch) const
+{
+    for(int i = 0; i < treeToSearch.getNumChildren(); i++)
+    {
+        if(compareChildren(treeToSearch.getChild(i), treeToFind))
+        {
+            return treeToSearch.getChild(i);
+        }
+        
+        if(treeToSearch.getChild(i).getNumChildren() > 0)
+        {
+            juce::ValueTree subSearchRes = findTreeInOtherTree(treeToFind, treeToSearch.getChild(i));
+            
+            if(subSearchRes.isValid())
+            {
+                return subSearchRes;
+            }
+        }
+    }
+    
+    return juce::ValueTree();
 }
