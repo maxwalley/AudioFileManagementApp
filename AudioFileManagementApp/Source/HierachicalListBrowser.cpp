@@ -12,9 +12,36 @@
 #include "HierachicalListBrowser.h"
 
 //==============================================================================
-HierachicalListBrowser::HierachicalListBrowser() : dataFormatted(false)
+
+AddButton::AddButton() : juce::Button(juce::String())
 {
     
+}
+
+AddButton::~AddButton()
+{
+    
+}
+
+void AddButton::paintButton (juce::Graphics &g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    //Button Fill
+    g.setColour(findColour(juce::TextButton::buttonColourId));
+    g.fillEllipse(1, 1, getWidth() - 2, getHeight() - 2);
+    
+    g.setColour(juce::Colours::black);
+    g.drawEllipse(1, 1, getWidth() - 2, getHeight() - 2, 1.5);
+    
+    g.drawLine(getWidth() / 5, getHeight() / 2, (getWidth() / 5) * 4, getHeight() / 2, 1.5);
+    g.drawLine(getWidth() / 2, getHeight() / 5, getWidth() / 2, (getHeight() / 5) * 4, 1.5);
+}
+
+
+HierachicalListBrowser::HierachicalListBrowser() : dataFormatted(false), folderName("Folder")
+{
+    addAndMakeVisible(addButton);
+    addButton.setColour(juce::TextButton::buttonColourId, juce::Colours::lightgrey);
+    addButton.addListener(this);
 }
 
 HierachicalListBrowser::~HierachicalListBrowser()
@@ -27,6 +54,12 @@ void HierachicalListBrowser::paint (juce::Graphics& g)
     {
         drawChildren(g, dataToDisplay);
     }
+    
+    g.setColour(juce::Colours::black);
+    g.drawLine(0, getHeight() - 35, getWidth(), getHeight() - 35, 1.5);
+    
+    g.setFont(juce::Font(16));
+    g.drawText("Add New " + folderName, getWidth() / 2, getHeight() - 35, getWidth() / 2 - 30, 35, juce::Justification::centred);
 }
 
 void HierachicalListBrowser::resized()
@@ -35,6 +68,8 @@ void HierachicalListBrowser::resized()
     {
         drawLabels(dataToDisplay);
     }
+    
+    addButton.setBounds(getWidth() - 30, getHeight() - 30, 30, 30);
 }
 
 void HierachicalListBrowser::setDataToDisplay(juce::ValueTree newData)
@@ -66,35 +101,37 @@ void HierachicalListBrowser::refresh()
     repaint();
 }
 
+void HierachicalListBrowser::setFolderName(const juce::String& newName)
+{
+    folderName = newName;
+}
+
 void HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw)
 {
     std::for_each(treeToDraw.begin(), treeToDraw.end(), [this, &g](juce::ValueTree tree)
     {
-        if(tree.getType() == juce::Identifier("Catagory"))
+        int yLocation = tree.getProperty("YLocation");
+        int indentation = int(tree.getProperty("Indentation")) * 10;
+            
+        g.setColour(juce::Colours::black);
+            
+        if(tree.getNumChildren() == 0)
         {
-            int yLocation = tree.getProperty("YLocation");
-            int indentation = int(tree.getProperty("Indentation")) * 10;
+            g.drawLine(indentation + 1, yLocation + 10, indentation + 7, yLocation + 10, 1.5);
+        }
+        
+        else if(!tree.getProperty("Opened"))
+        {
+            g.drawLine(indentation + 1, yLocation + 6, indentation + 7, yLocation + 10, 1.5);
+            g.drawLine(indentation + 1, yLocation + 14, indentation + 7, yLocation + 10, 1.5);
+        }
+        
+        else if(tree.getProperty("Opened"))
+        {
+            g.drawLine(indentation + 1, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
+            g.drawLine(indentation + 9, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
             
-            g.setColour(juce::Colours::black);
-            
-            if(tree.getNumChildren() == 0)
-            {
-                g.drawLine(indentation + 1, yLocation + 10, indentation + 7, yLocation + 10, 1.5);
-            }
-            
-            else if(!tree.getProperty("Opened"))
-            {
-                g.drawLine(indentation + 1, yLocation + 6, indentation + 7, yLocation + 10, 1.5);
-                g.drawLine(indentation + 1, yLocation + 14, indentation + 7, yLocation + 10, 1.5);
-            }
-            
-            else if(tree.getProperty("Opened"))
-            {
-                g.drawLine(indentation + 1, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
-                g.drawLine(indentation + 9, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
-                
-                drawChildren(g, tree);
-            }
+            drawChildren(g, tree);
         }
     });
 }
@@ -200,6 +237,35 @@ void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
             }
         }
     }
+}
+
+void HierachicalListBrowser::buttonClicked(juce::Button* button)
+{
+    if(button == &addButton)
+    {
+        addChildrenToHighlights(dataToDisplay);
+        refresh();
+    }
+}
+
+void HierachicalListBrowser::addChildrenToHighlights(juce::ValueTree tree)
+{
+    std::for_each(tree.begin(), tree.end(), [this](juce::ValueTree treeToSearch)
+    {
+        if(treeToSearch.getNumChildren() > 0 && treeToSearch.getProperty("Opened"))
+        {
+            addChildrenToHighlights(treeToSearch);
+        }
+        
+        if(treeToSearch.getProperty("Highlight"))
+        {
+            juce::ValueTree newTree(folderName);
+            newTree.setProperty("Renameable", true, nullptr);
+            newTree.setProperty("Name", "New " + folderName, nullptr);
+            
+            treeToSearch.addChild(newTree, -1, nullptr);
+        }
+    });
 }
 
 juce::ValueTree HierachicalListBrowser::getBottomNode(juce::ValueTree inputTree)

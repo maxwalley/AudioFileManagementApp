@@ -15,9 +15,21 @@
 //==============================================================================
 /*
 */
+class AddButton : public juce::Button
+{
+public:
+    AddButton();
+    ~AddButton();
+    
+private:
+    void paintButton (juce::Graphics &g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+    
+};
+
 
 class HierachicalListBrowser  : public juce::Component,
-                                public juce::Label::Listener
+                                public juce::Label::Listener,
+                                public juce::Button::Listener
 {
 public:
     HierachicalListBrowser();
@@ -29,6 +41,8 @@ public:
     void setDataToDisplay(juce::ValueTree newData);
     
     void refresh();
+    
+    void setFolderName(const juce::String& newName);
 
 protected:
     virtual void drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw);
@@ -42,6 +56,10 @@ protected:
 private:
     void mouseDown(const juce::MouseEvent &event) override;
     
+    void buttonClicked(juce::Button* button) override;
+    
+    void addChildrenToHighlights(juce::ValueTree tree);
+    
     juce::ValueTree getBottomNode(juce::ValueTree inputTree);
     
     const int getNumberOfViewableNodes(juce::ValueTree inputTree) const;
@@ -53,6 +71,10 @@ private:
     bool dataFormatted;
     
     std::vector<std::unique_ptr<juce::Label>> nameLabels;
+    
+    AddButton addButton;
+    
+    juce::String folderName;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierachicalListBrowser)
 };
