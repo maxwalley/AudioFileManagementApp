@@ -43,6 +43,8 @@ public:
     void refresh();
     
     void setFolderName(const juce::String& newName);
+    
+     juce::StringArray getAllHighlightedItems() const;
 
 protected:
     virtual void drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw);
@@ -65,6 +67,8 @@ private:
     const int getNumberOfViewableNodes(juce::ValueTree inputTree) const;
     
     juce::ValueTree getNodeAtYVal(int yVal, juce::ValueTree treeToSearch) const;
+    
+    juce::StringArray getHighlightedForTree(juce::ValueTree treeToSearch) const;
     
     juce::ValueTree dataToDisplay;
     

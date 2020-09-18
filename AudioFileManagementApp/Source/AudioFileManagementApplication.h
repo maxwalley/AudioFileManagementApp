@@ -58,6 +58,8 @@ private:
     std::unique_ptr<ComponentWindow> addFilesWindow;
     std::unique_ptr<AddFilesComponent> addFilesComponent;
     
+    ValueTree dataTree;
+    
     void actionListenerCallback(const juce::String& message) override;
     
 };

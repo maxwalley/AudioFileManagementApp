@@ -12,7 +12,7 @@
 #include "AddFilesParameterEditor.h"
 
 //==============================================================================
-AddFilesParameterEditor::AddFilesParameterEditor()
+AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : dataToAddTo(currentData)
 {
     addAndMakeVisible(titleLabel);
     titleLabel.setText("Parameters", dontSendNotification);
@@ -24,7 +24,7 @@ AddFilesParameterEditor::AddFilesParameterEditor()
     newVersionLabel.setText("Files are new versions of exisiting files", dontSendNotification);
     newVersionLabel.attachToComponent(&newVersionToggle, true);
     
-    ValueTree full("TestData");
+    /*ValueTree full("TestData");
     full.setProperty("Opened", false, nullptr);
     full.setProperty("Highlight", false, nullptr);
     
@@ -61,10 +61,9 @@ AddFilesParameterEditor::AddFilesParameterEditor()
     
     child3.addChild(grandchild2, -1, nullptr);
     
-    full.addChild(child3, -1, nullptr);
+    full.addChild(child3, -1, nullptr);*/
     
-    
-    testBrowser.setDataToDisplay(full);
+    testBrowser.setDataToDisplay(dataToAddTo.getChildWithName("Catagories"));
     
     addAndMakeVisible(testBrowser);
 }
@@ -95,5 +94,12 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
     if(button == &newVersionToggle)
     {
         repaint();
+        
+        juce::StringArray test = testBrowser.getAllHighlightedItems();
+        
+        std::for_each(test.begin(), test.end(), [](const juce::String& string)
+        {
+            DBG(string);
+        });
     }
 }

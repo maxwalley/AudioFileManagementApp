@@ -74,7 +74,7 @@ void HierachicalListBrowser::resized()
 
 void HierachicalListBrowser::setDataToDisplay(juce::ValueTree newData)
 {
-    dataToDisplay = newData;
+    dataToDisplay = newData.createCopy();
     refresh();
 }
 
@@ -104,6 +104,11 @@ void HierachicalListBrowser::refresh()
 void HierachicalListBrowser::setFolderName(const juce::String& newName)
 {
     folderName = newName;
+}
+
+juce::StringArray HierachicalListBrowser::getAllHighlightedItems() const
+{
+    return getHighlightedForTree(dataToDisplay);
 }
 
 void HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw)
@@ -272,7 +277,7 @@ juce::ValueTree HierachicalListBrowser::getBottomNode(juce::ValueTree inputTree)
 {
     juce::ValueTree lastChild = inputTree.getChild(inputTree.getNumChildren() - 1);
     
-    if(lastChild.getNumChildren() == 0)
+    if(lastChild.getNumChildren() == 0 || !lastChild.getProperty("Opened"))
     {
         return lastChild;
     }
@@ -317,4 +322,24 @@ juce::ValueTree HierachicalListBrowser::getNodeAtYVal(int yVal, juce::ValueTree 
             return getNodeAtYVal(yVal, evalTree);
         }
     }
+}
+
+juce::StringArray HierachicalListBrowser::getHighlightedForTree(juce::ValueTree treeToSearch) const
+{
+    juce::StringArray arrayToReturn;
+    
+    std::for_each(treeToSearch.begin(), treeToSearch.end(), [this, &arrayToReturn](juce::ValueTree tree)
+    {
+        if(tree.getProperty("Highlight"))
+        {
+            arrayToReturn.add(tree.getProperty("Name"));
+        }
+        
+        if(tree.getNumChildren() > 0 && tree.getProperty("Opened"))
+        {
+            arrayToReturn.addArray(getHighlightedForTree(tree));
+        }
+    });
+    
+    return arrayToReturn;
 }

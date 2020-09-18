@@ -29,7 +29,7 @@ class AddFilesComponent  : public Component,
                            public Button::Listener
 {
 public:
-    AddFilesComponent();
+    AddFilesComponent(juce::ValueTree currentData);
     ~AddFilesComponent() override;
 
     void paint (juce::Graphics&) override;

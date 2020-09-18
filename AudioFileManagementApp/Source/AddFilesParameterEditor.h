@@ -22,7 +22,7 @@ class AddFilesParameterEditor  : public Component,
                                  public Button::Listener
 {
 public:
-    AddFilesParameterEditor();
+    AddFilesParameterEditor(juce::ValueTree currentData);
     ~AddFilesParameterEditor() override;
 
     void paint (Graphics&) override;
@@ -38,6 +38,8 @@ private:
     Label newVersionLabel;
     
     HierachicalListBrowser testBrowser;
+    
+    juce::ValueTree dataToAddTo;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesParameterEditor)
 };

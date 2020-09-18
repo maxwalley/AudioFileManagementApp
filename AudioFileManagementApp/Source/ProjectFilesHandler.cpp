@@ -114,6 +114,18 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
         XmlElement tree("Data");
         tree.createNewChildElement("Catagories");
         tree.createNewChildElement("FX");
+        
+        XmlElement* test = tree.getChildByName("Catagories");
+        
+        test->createNewChildElement("Catagory")->setAttribute("Name", "Vehicles");
+        test->getChildByAttribute("Name", "Vehicles")->createNewChildElement("Catagory")->setAttribute("Name", "Car");
+        test->getChildByAttribute("Name", "Vehicles")->createNewChildElement("Catagory")->setAttribute("Name", "Bike");
+        test->getChildByAttribute("Name", "Vehicles")->createNewChildElement("Catagory")->setAttribute("Name", "Boat");
+        
+        test->createNewChildElement("Catagory")->setAttribute("Name", "Animals");
+        test->getChildByAttribute("Name", "Animals")->createNewChildElement("Catagory")->setAttribute("Name", "Cat");
+        test->getChildByAttribute("Name", "Animals")->createNewChildElement("Catagory")->setAttribute("Name", "Greyhound");
+        
         return tree;
     }
 }

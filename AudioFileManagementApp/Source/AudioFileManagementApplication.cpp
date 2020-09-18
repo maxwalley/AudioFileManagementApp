@@ -36,6 +36,10 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
     
     menu.addActionListener(this);
     MenuBarModel::setMacMainMenu(&menu);
+    
+    dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
+    
+    DBG(dataTree.getNumChildren());
 }
 
 void AudioFileManagementApplication::shutdown()
@@ -66,7 +70,7 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
         
         if(addFilesWindow->getContentComponent() == nullptr)
         {
-            addFilesComponent = std::make_unique<AddFilesComponent>();
+            addFilesComponent = std::make_unique<AddFilesComponent>(dataTree);
             addFilesWindow->setContentNonOwned(addFilesComponent.get(), true);
         }
         
