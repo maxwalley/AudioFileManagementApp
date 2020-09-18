@@ -38,8 +38,6 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
     MenuBarModel::setMacMainMenu(&menu);
     
     dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
-    
-    DBG(dataTree.getNumChildren());
 }
 
 void AudioFileManagementApplication::shutdown()

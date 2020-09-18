@@ -126,6 +126,10 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
         test->getChildByAttribute("Name", "Animals")->createNewChildElement("Catagory")->setAttribute("Name", "Cat");
         test->getChildByAttribute("Name", "Animals")->createNewChildElement("Catagory")->setAttribute("Name", "Greyhound");
         
+        test->createNewChildElement("Test")->setAttribute("Name", "Fruit");
+        test->getChildByAttribute("Name", "Fruit")->createNewChildElement("Test")->setAttribute("Name", "Lemon");
+        test->getChildByAttribute("Name", "Fruit")->createNewChildElement("Test")->setAttribute("Name", "Berry");
+        
         return tree;
     }
 }

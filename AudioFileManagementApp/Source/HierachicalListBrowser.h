@@ -44,7 +44,9 @@ public:
     
     void setFolderName(const juce::String& newName);
     
-     juce::StringArray getAllHighlightedItems() const;
+    juce::StringArray getAllHighlightedItems() const;
+    
+    void addTypesToIgnore(const juce::StringArray& listOfTypes);
 
 protected:
     virtual void drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw);
@@ -70,6 +72,9 @@ private:
     
     juce::StringArray getHighlightedForTree(juce::ValueTree treeToSearch) const;
     
+    //Affect top tree will chose whether the top level of the tree is affected
+    void setAllPropertiesInATree(juce::ValueTree inputTree, juce::Identifier property, juce::var val, bool affectTopTree, bool recursive);
+    
     juce::ValueTree dataToDisplay;
     
     bool dataFormatted;
@@ -79,6 +84,8 @@ private:
     AddButton addButton;
     
     juce::String folderName;
+    
+    juce::StringArray typesToIgnore;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierachicalListBrowser)
 };

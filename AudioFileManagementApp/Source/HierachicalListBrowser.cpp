@@ -111,10 +111,22 @@ juce::StringArray HierachicalListBrowser::getAllHighlightedItems() const
     return getHighlightedForTree(dataToDisplay);
 }
 
+void HierachicalListBrowser::addTypesToIgnore(const juce::StringArray& listOfTypes)
+{
+    typesToIgnore.addArray(listOfTypes);
+    
+    refresh();
+}
+
 void HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw)
 {
-    std::for_each(treeToDraw.begin(), treeToDraw.end(), [this, &g](juce::ValueTree tree)
+    for(juce::ValueTree tree: treeToDraw)
     {
+        if(typesToIgnore.contains(tree.getType()))
+        {
+            continue;
+        }
+        
         int yLocation = tree.getProperty("YLocation");
         int indentation = int(tree.getProperty("Indentation")) * 10;
             
@@ -138,7 +150,7 @@ void HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree tre
             
             drawChildren(g, tree);
         }
-    });
+    };
 }
 
 void HierachicalListBrowser::drawLabels(juce::ValueTree treeToDraw)
@@ -146,6 +158,12 @@ void HierachicalListBrowser::drawLabels(juce::ValueTree treeToDraw)
     for(int i = 0; i < treeToDraw.getNumChildren(); i++)
     {
         juce::ValueTree currentTree = treeToDraw.getChild(i);
+        
+        if(typesToIgnore.contains(currentTree.getType()))
+        {
+            continue;
+        }
+        
         int yLoc = currentTree.getProperty("YLocation");
         int indent = int(currentTree.getProperty("Indentation")) * 10;
         
@@ -173,8 +191,13 @@ void HierachicalListBrowser::drawLabels(juce::ValueTree treeToDraw)
 
 int HierachicalListBrowser::formatTree(juce::ValueTree inputTree, int startY, int startIndentationIndex)
 {
-    std::for_each(inputTree.begin(), inputTree.end(), [this, &startY, &startIndentationIndex](juce::ValueTree tree)
+    for (juce::ValueTree tree : inputTree)
     {
+        if(typesToIgnore.contains(tree.getType()))
+        {
+            continue;
+        }
+        
         if(!tree.hasProperty("Opened"))
         {
             tree.setProperty("Opened", false, nullptr);
@@ -201,7 +224,7 @@ int HierachicalListBrowser::formatTree(juce::ValueTree inputTree, int startY, in
         {
             startY = formatTree(tree, startY, startIndentationIndex + 1);
         }
-    });
+    };
     return startY;
 }
 
@@ -238,6 +261,11 @@ void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
             {
                 clickedTree.setProperty("Opened", !clickedTree.getProperty("Opened"), nullptr);
                 
+                if(!clickedTree.getProperty("Opened"))
+                {
+                    setAllPropertiesInATree(clickedTree, "Highlight", false, false, true);
+                }
+                
                 refresh();
             }
         }
@@ -255,8 +283,13 @@ void HierachicalListBrowser::buttonClicked(juce::Button* button)
 
 void HierachicalListBrowser::addChildrenToHighlights(juce::ValueTree tree)
 {
-    std::for_each(tree.begin(), tree.end(), [this](juce::ValueTree treeToSearch)
+    for (juce::ValueTree treeToSearch : tree)
     {
+        if(typesToIgnore.contains(treeToSearch.getType()))
+        {
+            continue;
+        }
+        
         if(treeToSearch.getNumChildren() > 0 && treeToSearch.getProperty("Opened"))
         {
             addChildrenToHighlights(treeToSearch);
@@ -270,36 +303,56 @@ void HierachicalListBrowser::addChildrenToHighlights(juce::ValueTree tree)
             
             treeToSearch.addChild(newTree, -1, nullptr);
         }
-    });
+    };
 }
 
 juce::ValueTree HierachicalListBrowser::getBottomNode(juce::ValueTree inputTree)
 {
-    juce::ValueTree lastChild = inputTree.getChild(inputTree.getNumChildren() - 1);
+    juce::ValueTree lastChild;
     
+    for(int i = inputTree.getNumChildren() - 1; i >= 0 && !lastChild.isValid(); i--)
+    {
+        juce::ValueTree testChild = inputTree.getChild(i);
+        
+        if(!typesToIgnore.contains(testChild.getType()))
+        {
+            lastChild = testChild;
+        }
+    }
+    
+    //If all in this one were invalid
+    if(!lastChild.isValid())
+    {
+        return inputTree;
+    }
+        
     if(lastChild.getNumChildren() == 0 || !lastChild.getProperty("Opened"))
     {
         return lastChild;
     }
-    else
-    {
-        return getBottomNode(lastChild);
-    }
+    
+    //if the last valid one is open
+    return getBottomNode(lastChild);
 }
 
 const int HierachicalListBrowser::getNumberOfViewableNodes(juce::ValueTree inputTree) const
 {
     int count = 0;
     
-    std::for_each(inputTree.begin(), inputTree.end(), [this, &count](juce::ValueTree tree)
+    for (juce::ValueTree tree : inputTree)
     {
+        if(typesToIgnore.contains(tree.getType()))
+        {
+            continue;
+        }
+        
         count++;
         
         if(tree.getProperty("Opened"))
         {
             count += getNumberOfViewableNodes(tree);
         }
-    });
+    };
     
     return count;
 }
@@ -308,9 +361,26 @@ juce::ValueTree HierachicalListBrowser::getNodeAtYVal(int yVal, juce::ValueTree 
 {
     for(int i = 0; i < treeToSearch.getNumChildren(); i++)
     {
-        juce::ValueTree testTree = treeToSearch.getChild(i + 1);
+        //If the one being checked is not valid
+        if(typesToIgnore.contains(treeToSearch.getChild(i).getType()))
+        {
+            continue;
+        }
         
-        if(int(testTree.getProperty("YLocation")) > yVal || !testTree.isValid())
+        juce::ValueTree testTree;
+        
+        //Finds the next valid one
+        for(int j = i + 1; j < treeToSearch.getNumChildren() && !testTree.isValid(); j++)
+        {
+            if(!typesToIgnore.contains(treeToSearch.getChild(j).getType()))
+            {
+                testTree = treeToSearch.getChild(j);
+            }
+        }
+        
+        int thisNodeYLoc = testTree.getProperty("YLocation");
+        
+        if(thisNodeYLoc > yVal || !testTree.isValid())
         {
             juce::ValueTree evalTree = treeToSearch.getChild(i);
             
@@ -322,13 +392,15 @@ juce::ValueTree HierachicalListBrowser::getNodeAtYVal(int yVal, juce::ValueTree 
             return getNodeAtYVal(yVal, evalTree);
         }
     }
+    
+    return treeToSearch;
 }
 
 juce::StringArray HierachicalListBrowser::getHighlightedForTree(juce::ValueTree treeToSearch) const
 {
     juce::StringArray arrayToReturn;
     
-    std::for_each(treeToSearch.begin(), treeToSearch.end(), [this, &arrayToReturn](juce::ValueTree tree)
+    for (juce::ValueTree tree : treeToSearch)
     {
         if(tree.getProperty("Highlight"))
         {
@@ -339,7 +411,33 @@ juce::StringArray HierachicalListBrowser::getHighlightedForTree(juce::ValueTree 
         {
             arrayToReturn.addArray(getHighlightedForTree(tree));
         }
-    });
+    };
     
     return arrayToReturn;
+}
+
+void HierachicalListBrowser::setAllPropertiesInATree(juce::ValueTree inputTree, juce::Identifier property, juce::var val, bool affectTopTree, bool recursive)
+{
+    if(affectTopTree)
+    {
+        inputTree.setProperty(property, val, nullptr);
+    }
+    
+    for (juce::ValueTree tree : inputTree)
+    {
+        if(typesToIgnore.contains(tree.getType()))
+        {
+            continue;
+        }
+        
+        tree.setProperty(property, val, nullptr);
+        
+        if(recursive)
+        {
+            if(tree.getProperty("Opened"))
+            {
+                setAllPropertiesInATree(tree, property, val, false, true);
+            }
+        }
+    }
 }

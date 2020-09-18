@@ -65,6 +65,8 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     
     testBrowser.setDataToDisplay(dataToAddTo.getChildWithName("Catagories"));
     
+    testBrowser.addTypesToIgnore(juce::StringArray("Test"));
+    
     addAndMakeVisible(testBrowser);
 }
 
