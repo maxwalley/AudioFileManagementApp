@@ -134,25 +134,14 @@ void HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree tre
         
         int yLocation = tree.getProperty("YLocation");
         int indentation = int(tree.getProperty("Indentation")) * 10;
-            
-        g.setColour(juce::Colours::black);
-            
-        if(tree.getNumChildren() == 0)
-        {
-            g.drawLine(indentation + 1, yLocation + 10, indentation + 7, yLocation + 10, 1.5);
-        }
         
-        else if(!tree.getProperty("Opened"))
-        {
-            g.drawLine(indentation + 1, yLocation + 6, indentation + 7, yLocation + 10, 1.5);
-            g.drawLine(indentation + 1, yLocation + 14, indentation + 7, yLocation + 10, 1.5);
-        }
-        
-        else if(tree.getProperty("Opened"))
-        {
-            g.drawLine(indentation + 1, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
-            g.drawLine(indentation + 9, yLocation + 6, indentation + 5, yLocation + 14, 1.5);
+        bool isOpen = tree.getProperty("Opened");
+        int numChildren = tree.getNumChildren();
             
+        drawSymbol(g, yLocation, indentation, numChildren, isOpen);
+        
+        if(numChildren && isOpen)
+        {
             drawChildren(g, tree);
         }
     };
@@ -240,6 +229,28 @@ void HierachicalListBrowser::labelTextChanged(juce::Label* label)
     labelTree.setProperty("Name", label->getText(), nullptr);
 }
 
+void HierachicalListBrowser::drawSymbol(juce::Graphics& g, int yStart, int indentation, bool hasChildren, bool isOpen)
+{
+    g.setColour(juce::Colours::black);
+        
+    if(!hasChildren)
+    {
+        g.drawLine(indentation + 1, yStart + 10, indentation + 7, yStart + 10, 1.5);
+    }
+    
+    else if(!isOpen)
+    {
+        g.drawLine(indentation + 1, yStart + 6, indentation + 7, yStart + 10, 1.5);
+        g.drawLine(indentation + 1, yStart + 14, indentation + 7, yStart + 10, 1.5);
+    }
+    
+    else if(isOpen)
+    {
+        g.drawLine(indentation + 1, yStart + 6, indentation + 5, yStart + 14, 1.5);
+        g.drawLine(indentation + 9, yStart + 6, indentation + 5, yStart + 14, 1.5);
+    }
+}
+
 void HierachicalListBrowser::mouseDown(const juce::MouseEvent &event)
 {
     if(event.originalComponent->getComponentID() == "label")
@@ -317,20 +328,23 @@ void HierachicalListBrowser::valueTreeChildAdded(juce::ValueTree &parentTree, ju
 
 void HierachicalListBrowser::valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
-    juce::ValueTree treeThatNeedsProperty;
-    
-    if(getTopParentNode(treeWhosePropertyHasChanged) == originalData.getParent())
+    if(property == juce::Identifier("Name"))
     {
-        treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, dataToDisplay);
-    }
-    else if(getTopParentNode(treeWhosePropertyHasChanged) == dataToDisplay)
-    {
-        treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, originalData);
-    }
-    
-    if(!treeThatNeedsProperty.hasProperty(property) || treeThatNeedsProperty.getProperty(property) != treeWhosePropertyHasChanged.getProperty(property))
-    {
-        treeThatNeedsProperty.setProperty(property, treeWhosePropertyHasChanged.getProperty(property), nullptr);
+        juce::ValueTree treeThatNeedsProperty;
+        
+        if(getTopParentNode(treeWhosePropertyHasChanged) == originalData.getParent())
+        {
+            treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, dataToDisplay);
+        }
+        else if(getTopParentNode(treeWhosePropertyHasChanged) == dataToDisplay)
+        {
+            treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, originalData);
+        }
+        
+        if(!treeThatNeedsProperty.hasProperty(property) || treeThatNeedsProperty.getProperty(property) != treeWhosePropertyHasChanged.getProperty(property))
+        {
+            treeThatNeedsProperty.setProperty(property, treeWhosePropertyHasChanged.getProperty(property), nullptr);
+        }
     }
     
     refresh();

@@ -60,6 +60,8 @@ protected:
     
     virtual void labelTextChanged(juce::Label* label) override;
     
+    virtual void drawSymbol(juce::Graphics& g, int yStart, int indentation, bool hasChildren, bool isOpen);
+    
 private:
     void mouseDown(const juce::MouseEvent &event) override;
     
