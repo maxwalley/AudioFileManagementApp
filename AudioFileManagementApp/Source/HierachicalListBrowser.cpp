@@ -317,6 +317,22 @@ void HierachicalListBrowser::valueTreeChildAdded(juce::ValueTree &parentTree, ju
 
 void HierachicalListBrowser::valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
+    juce::ValueTree treeThatNeedsProperty;
+    
+    if(getTopParentNode(treeWhosePropertyHasChanged) == originalData.getParent())
+    {
+        treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, dataToDisplay);
+    }
+    else if(getTopParentNode(treeWhosePropertyHasChanged) == dataToDisplay)
+    {
+        treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, originalData);
+    }
+    
+    if(!treeThatNeedsProperty.hasProperty(property) || treeThatNeedsProperty.getProperty(property) != treeWhosePropertyHasChanged.getProperty(property))
+    {
+        treeThatNeedsProperty.setProperty(property, treeWhosePropertyHasChanged.getProperty(property), nullptr);
+    }
+    
     refresh();
 }
 
