@@ -18,7 +18,9 @@
 */
 using namespace juce;
 
-class ValueTreeItem  : public TreeViewItem
+class ValueTreeItem  : public TreeViewItem,
+                       public MouseListener,
+                       public Label::Listener
 {
 public:
     ValueTreeItem(ValueTree treeToDisplay);
@@ -32,9 +34,22 @@ public:
     
     Component* createItemComponent() override;
     
+    var getDragSourceDescription() override;
+    
+    bool isInterestedInDragSource(const DragAndDropTarget::SourceDetails& dragSourceDetails) override;
+    
+    void itemDropped(const DragAndDropTarget::SourceDetails& dragSourceDetails, int insertIndex) override;
+    
+    void mouseDown(const MouseEvent& event) override;
+    
+    void labelTextChanged(Label* label) override;
+    
+    ValueTree getShownTree() const;
+    
 private:
     ValueTree tree;
 };
+
 
 class AddFilesParameterEditor  : public Component,
                                  public Button::Listener
@@ -57,6 +72,8 @@ private:
     
     TreeView catagoryViewer;
     ValueTree dataToAddTo;
+    
+    TextButton newCatButton;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesParameterEditor)
 };
