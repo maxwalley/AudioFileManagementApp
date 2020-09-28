@@ -317,11 +317,13 @@ void HierachicalListBrowser::valueTreeChildAdded(juce::ValueTree &parentTree, ju
     
     juce::ValueTree parentInOtherTree;
     
-    if(getTopParentNode(parentTree) == originalData.getParent())
+    juce::ValueTree rootTree = parentTree.getRoot();
+    
+    if(rootTree == originalData.getParent())
     {
         parentInOtherTree = findTreeInOtherTree(parentTree, dataToDisplay);
     }
-    else if(getTopParentNode(parentTree) == dataToDisplay)
+    else if(rootTree == dataToDisplay)
     {
         parentInOtherTree = findTreeInOtherTree(parentTree, originalData);
     }
@@ -338,19 +340,18 @@ void HierachicalListBrowser::valueTreePropertyChanged(juce::ValueTree &treeWhose
     {
         juce::ValueTree treeThatNeedsProperty;
         
-        if(getTopParentNode(treeWhosePropertyHasChanged) == originalData.getParent())
+        juce::ValueTree rootTree = treeWhosePropertyHasChanged.getRoot();
+        
+        if(rootTree == originalData.getParent())
         {
             treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, dataToDisplay);
         }
-        else if(getTopParentNode(treeWhosePropertyHasChanged) == dataToDisplay)
+        else if(rootTree == dataToDisplay)
         {
             treeThatNeedsProperty = findTreeInOtherTree(treeWhosePropertyHasChanged, originalData);
         }
         
-        if(!treeThatNeedsProperty.hasProperty(property) || treeThatNeedsProperty.getProperty(property) != treeWhosePropertyHasChanged.getProperty(property))
-        {
-            treeThatNeedsProperty.setProperty(property, treeWhosePropertyHasChanged.getProperty(property), nullptr);
-        }
+        treeThatNeedsProperty.setPropertyExcludingListener(this, property, treeWhosePropertyHasChanged.getProperty(property), nullptr);
     }
     
     refresh();
@@ -515,15 +516,6 @@ void HierachicalListBrowser::setAllPropertiesInATree(juce::ValueTree inputTree, 
             }
         }
     }
-}
-
-juce::ValueTree HierachicalListBrowser::getTopParentNode(juce::ValueTree inputTree) const
-{
-    if(!inputTree.getParent().isValid())
-    {
-        return inputTree;
-    }
-    return getTopParentNode(inputTree.getParent());
 }
 
 bool HierachicalListBrowser::compareChildren(const juce::ValueTree& first, const juce::ValueTree& second) const

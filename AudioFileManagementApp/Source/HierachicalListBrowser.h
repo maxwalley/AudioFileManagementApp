@@ -90,8 +90,6 @@ private:
     
     juce::StringArray getHighlightedForTree(juce::ValueTree treeToSearch) const;
     
-    juce::ValueTree getTopParentNode(juce::ValueTree inputTree) const;
-    
     //Comparison based on name property
     bool compareChildren(const juce::ValueTree& first, const juce::ValueTree& second) const;
     
