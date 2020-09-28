@@ -35,6 +35,15 @@ class HierachicalListBrowser  : public juce::Component,
                                 public juce::ValueTree::Listener
 {
 public:
+    enum class ColourIds
+    {
+        textColourId = 1,
+        symbolColourId = 2,
+        backgroundColourId = 3,
+        highlightColourId = 4,
+        highlightTextColourId = 5
+    };
+    
     HierachicalListBrowser();
     ~HierachicalListBrowser() override;
 
@@ -50,7 +59,7 @@ public:
     juce::StringArray getAllHighlightedItems() const;
     
     void addTypesToIgnore(const juce::StringArray& listOfTypes);
-
+    
 protected:
     virtual void drawChildren(juce::Graphics& g, juce::ValueTree treeToDraw);
     

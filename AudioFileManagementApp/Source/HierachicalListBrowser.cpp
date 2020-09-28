@@ -45,6 +45,12 @@ HierachicalListBrowser::HierachicalListBrowser() : dataFormatted(false), folderN
     
     dataToDisplay.addListener(this);
     originalData.addListener(this);
+    
+    setColour(int(ColourIds::textColourId), juce::Colours::black);
+    setColour(int(ColourIds::symbolColourId), juce::Colours::black);
+    setColour(int(ColourIds::highlightColourId), juce::Colours::black);
+    setColour(int(ColourIds::backgroundColourId), juce::Colours::white);
+    setColour(int(ColourIds::highlightTextColourId), juce::Colours::white);
 }
 
 HierachicalListBrowser::~HierachicalListBrowser()
@@ -96,8 +102,8 @@ void HierachicalListBrowser::refresh()
             label->addListener(this);
             label->addMouseListener(this, true);
             label->setComponentID("label");
+            addAndMakeVisible(label.get());
         }
-        addAndMakeVisible(label.get());
     });
     
     formatTree(dataToDisplay);
@@ -165,13 +171,13 @@ void HierachicalListBrowser::drawLabels(juce::ValueTree treeToDraw)
         
         if(treeToDraw.getChild(i).getProperty("Highlight"))
         {
-            nameLabels[yLoc / 20]->setColour(juce::Label::backgroundColourId, juce::Colours::black);
-            nameLabels[yLoc / 20]->setColour(juce::Label::textColourId, juce::Colours::white);
+            nameLabels[yLoc / 20]->setColour(juce::Label::backgroundColourId, findColour(int(ColourIds::highlightColourId)));
+            nameLabels[yLoc / 20]->setColour(juce::Label::textColourId, findColour(int(ColourIds::highlightTextColourId)));
         }
         else
         {
-            nameLabels[yLoc / 20]->setColour(juce::Label::backgroundColourId, juce::Colours::silver);
-            nameLabels[yLoc / 20]->setColour(juce::Label::textColourId, juce::Colours::black);
+            nameLabels[yLoc / 20]->setColour(juce::Label::backgroundColourId, findColour(int(ColourIds::backgroundColourId)));
+            nameLabels[yLoc / 20]->setColour(juce::Label::textColourId, findColour(int(ColourIds::textColourId)));
         }
         
         nameLabels[yLoc / 20]->setEditable(false, treeToDraw.getChild(i).getProperty("Renameable"));
@@ -231,7 +237,7 @@ void HierachicalListBrowser::labelTextChanged(juce::Label* label)
 
 void HierachicalListBrowser::drawSymbol(juce::Graphics& g, int yStart, int indentation, bool hasChildren, bool isOpen)
 {
-    g.setColour(juce::Colours::black);
+    g.setColour(findColour(int(ColourIds::symbolColourId)));
         
     if(!hasChildren)
     {
