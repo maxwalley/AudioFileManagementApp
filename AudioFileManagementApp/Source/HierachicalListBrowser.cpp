@@ -144,6 +144,9 @@ void HierachicalListBrowser::drawChildren(juce::Graphics& g, juce::ValueTree tre
         bool isOpen = tree.getProperty("Opened");
         int numChildren = tree.getNumChildren();
             
+        g.setColour(findColour(int(HierachicalListBrowser::ColourIds::backgroundColourId)));
+        g.fillRect(0, yLocation, getWidth(), 20);
+        
         drawSymbol(g, yLocation, indentation, numChildren, isOpen);
         
         if(numChildren && isOpen)

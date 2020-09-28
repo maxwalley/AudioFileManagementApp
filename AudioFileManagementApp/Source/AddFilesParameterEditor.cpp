@@ -25,7 +25,6 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     newVersionLabel.attachToComponent(&newVersionToggle, true);
     
     testBrowser.setDataToDisplay(dataToAddTo.getChildWithName("Catagories"));
-    
     testBrowser.addTypesToIgnore(juce::StringArray("Test"));
     
     addAndMakeVisible(testBrowser);
