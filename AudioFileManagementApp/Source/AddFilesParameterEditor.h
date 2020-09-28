@@ -18,6 +18,24 @@
 */
 using namespace juce;
 
+class ValueTreeItem  : public TreeViewItem
+{
+public:
+    ValueTreeItem(ValueTree treeToDisplay);
+    ~ValueTreeItem();
+    
+    bool mightContainSubItems() override;
+    
+    String getUniqueName() const override;
+    
+    void itemOpennessChanged(bool isNowOpen) override;
+    
+    Component* createItemComponent() override;
+    
+private:
+    ValueTree tree;
+};
+
 class AddFilesParameterEditor  : public Component,
                                  public Button::Listener
 {
@@ -37,9 +55,8 @@ private:
     ToggleButton newVersionToggle;
     Label newVersionLabel;
     
-    HierachicalListBrowser testBrowser;
-    
-    juce::ValueTree dataToAddTo;
+    TreeView catagoryViewer;
+    ValueTree dataToAddTo;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesParameterEditor)
 };
