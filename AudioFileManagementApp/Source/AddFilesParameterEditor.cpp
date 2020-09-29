@@ -82,7 +82,7 @@ ValueTree ValueTreeItem::getShownTree() const
 }
 
 //==============================================================================
-AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : dataToAddTo(currentData), newCatButton("New Catagory")
+AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : dataToAddTo(currentData), newCatButton("New Catagory"), removeCatButton("Remove Catagory")
 {
     addAndMakeVisible(titleLabel);
     titleLabel.setText("Parameters", dontSendNotification);
@@ -101,6 +101,11 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     addAndMakeVisible(newCatButton);
     newCatButton.addListener(this);
     newCatButton.setTooltip("Add a new catagory to each of the highlighted items");
+    
+    addAndMakeVisible(removeCatButton);
+    removeCatButton.addListener(this);
+    //Remove catagory needs to remove it from the fx!!!
+    removeCatButton.setTooltip("Remove all selected catagories. Warning: this will remove this catagory from all fx using it");
     
     addAndMakeVisible(nounLabel);
     nounLabel.setColour(Label::ColourIds::outlineColourId, Colours::black);
@@ -143,6 +148,7 @@ void AddFilesParameterEditor::resized()
     {
         catagoryViewer.setBounds(0, 95, getWidth(), 155);
         newCatButton.setBounds(10, 260, 120, 20);
+        removeCatButton.setBounds(getWidth() - 130, 260, 120, 20);
         nounLabel.setBounds(10, 305, 120, 20);
         verbLabel.setBounds(getWidth() - 130, 305, 120, 20);
         descripEditor.setBounds(10, 350, getWidth() - 20, 40);
@@ -162,7 +168,24 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
     
     else if(button == &newCatButton)
     {
-        for(int i = 0; i < catagoryViewer.getNumSelectedItems(); i++)
+        int numSelected = catagoryViewer.getNumSelectedItems();
+        
+        if(numSelected == 0)
+        {
+            ValueTreeItem* rootItem = dynamic_cast<ValueTreeItem*>(catagoryViewer.getRootItem());
+            
+            if(rootItem != nullptr)
+            {
+                ValueTree newChild("Catagory");
+                newChild.setProperty("Name", "New Catagory", nullptr);
+                rootItem->getShownTree().appendChild(newChild, nullptr);
+                rootItem->addSubItem(new ValueTreeItem(newChild));
+            }
+            
+            return;
+        }
+        
+        for(int i = 0; i < numSelected; i++)
         {
             ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(catagoryViewer.getSelectedItem(i));
             
@@ -178,5 +201,51 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
             
             selectedItem->addSubItem(new ValueTreeItem(newChild));
         }
+    }
+    
+    else if(button == &removeCatButton)
+    {
+        deleteSelectedItems();
+    }
+}
+
+bool AddFilesParameterEditor::keyPressed(const KeyPress& key)
+{
+    if(key == KeyPress::deleteKey || key == KeyPress::backspaceKey)
+    {
+        deleteSelectedItems();
+    }
+    
+    return true;
+}
+
+void AddFilesParameterEditor::deleteSelectedItems()
+{
+    int numSelected = catagoryViewer.getNumSelectedItems();
+    
+    if(numSelected == 0)
+    {
+        return;
+    }
+    
+    if(AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Are you sure you want to delete this catagory?", "Deleting these catagories will delete them from any associated fx. Are you sure you want to continue?", "Continue", "Cancel", this))
+    {
+    /*
+    for(int i = 0; i < numSelected; i++)
+    {
+        ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(catagoryViewer.getSelectedItem(i));
+        
+        if(selectedItem == nullptr)
+        {
+            continue;
+        }
+        
+        ValueTree selectedTree = selectedItem->getShownTree();
+        
+        selectedTree.getParent().removeChild(selectedTree, nullptr);
+        
+        selectedItem->getParentItem()->removeSubItem(selectedItem->getIndexInParent());
+    }*/
+        DBG("This is not yet implemented - catagories will need to be removed from fx");
     }
 }

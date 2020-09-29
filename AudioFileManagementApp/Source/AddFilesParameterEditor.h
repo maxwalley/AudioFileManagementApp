@@ -59,6 +59,10 @@ private:
     
     void buttonClicked(Button* button) override;
     
+    bool keyPressed(const KeyPress& key) override;
+    
+    void deleteSelectedItems();
+    
     Label titleLabel;
     
     ToggleButton newVersionToggle;
@@ -68,6 +72,7 @@ private:
     ValueTree dataToAddTo;
     
     TextButton newCatButton;
+    TextButton removeCatButton;
     
     Label nounLabel;
     Label verbLabel;
