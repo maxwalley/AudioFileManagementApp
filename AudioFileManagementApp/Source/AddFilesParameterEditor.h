@@ -34,12 +34,6 @@ public:
     
     Component* createItemComponent() override;
     
-    var getDragSourceDescription() override;
-    
-    bool isInterestedInDragSource(const DragAndDropTarget::SourceDetails& dragSourceDetails) override;
-    
-    void itemDropped(const DragAndDropTarget::SourceDetails& dragSourceDetails, int insertIndex) override;
-    
     void mouseDown(const MouseEvent& event) override;
     
     void labelTextChanged(Label* label) override;
@@ -74,6 +68,11 @@ private:
     ValueTree dataToAddTo;
     
     TextButton newCatButton;
+    
+    Label nounLabel;
+    Label verbLabel;
+    
+    TextEditor descripEditor;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesParameterEditor)
 };

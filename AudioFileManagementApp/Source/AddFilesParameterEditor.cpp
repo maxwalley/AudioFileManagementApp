@@ -57,21 +57,6 @@ Component* ValueTreeItem::createItemComponent()
     return newLabel;
 }
 
-var ValueTreeItem::getDragSourceDescription()
-{
-    return "drag";
-}
-
-bool ValueTreeItem::isInterestedInDragSource(const DragAndDropTarget::SourceDetails& dragSourceDetails)
-{
-    return dragSourceDetails.description == "drag";
-}
-
-void ValueTreeItem::itemDropped(const DragAndDropTarget::SourceDetails& dragSourceDetails, int insertIndex)
-{
-    
-}
-
 void ValueTreeItem::mouseDown(const MouseEvent& event)
 {
     setSelected(!isSelected(), false, dontSendNotification);
@@ -97,7 +82,7 @@ ValueTree ValueTreeItem::getShownTree() const
 }
 
 //==============================================================================
-AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : dataToAddTo(currentData), newCatButton("New Cat")
+AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : dataToAddTo(currentData), newCatButton("New Catagory")
 {
     addAndMakeVisible(titleLabel);
     titleLabel.setText("Parameters", dontSendNotification);
@@ -115,6 +100,21 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     
     addAndMakeVisible(newCatButton);
     newCatButton.addListener(this);
+    newCatButton.setTooltip("Add a new catagory to each of the highlighted items");
+    
+    addAndMakeVisible(nounLabel);
+    nounLabel.setColour(Label::ColourIds::outlineColourId, Colours::black);
+    nounLabel.setEditable(true);
+    
+    addAndMakeVisible(verbLabel);
+    verbLabel.setColour(Label::ColourIds::outlineColourId, Colours::black);
+    verbLabel.setEditable(true);
+    
+    addAndMakeVisible(descripEditor);
+    descripEditor.setMultiLine(true);
+    descripEditor.setColour(TextEditor::ColourIds::backgroundColourId, Colours::silver);
+    descripEditor.setColour(TextEditor::outlineColourId, Colours::black);
+    descripEditor.setTooltip("These words should describe the effect and be seperated with a ','");
 }
 
 AddFilesParameterEditor::~AddFilesParameterEditor()
@@ -127,6 +127,9 @@ void AddFilesParameterEditor::paint (juce::Graphics& g)
     if(!newVersionToggle.getToggleState())
     {
         g.drawText("Choose Catagories", 0, 80, getWidth(), 10, Justification::left);
+        g.drawText("Noun", 10, 290, 120, 15, Justification::centred);
+        g.drawText("Verb", getWidth() - 130, 290, 120, 15, Justification::centred);
+        g.drawText("Descriptive Words", 10, 335, getWidth() - 20, 15, Justification::left);
     }
 }
 
@@ -138,9 +141,15 @@ void AddFilesParameterEditor::resized()
     
     if(!newVersionToggle.getToggleState())
     {
-        catagoryViewer.setBounds(0, 95, getWidth(), getHeight() - 150);
-        
-        newCatButton.setBounds(0, getHeight() - 140, 80, 20);
+        catagoryViewer.setBounds(0, 95, getWidth(), 155);
+        newCatButton.setBounds(10, 260, 120, 20);
+        nounLabel.setBounds(10, 305, 120, 20);
+        verbLabel.setBounds(getWidth() - 130, 305, 120, 20);
+        descripEditor.setBounds(10, 350, getWidth() - 20, 40);
+    }
+    else
+    {
+        catagoryViewer.setVisible(false);
     }
 }
 
@@ -148,7 +157,7 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
 {
     if(button == &newVersionToggle)
     {
-        repaint();
+        resized();
     }
     
     else if(button == &newCatButton)

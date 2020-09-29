@@ -60,6 +60,8 @@ private:
     
     ValueTree dataTree;
     
+    TooltipWindow tooltipWindow;
+    
     void actionListenerCallback(const juce::String& message) override;
     
 };
