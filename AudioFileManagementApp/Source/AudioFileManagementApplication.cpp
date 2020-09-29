@@ -72,9 +72,14 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
             addFilesWindow->setContentNonOwned(addFilesComponent.get(), true);
         }
         
-        if(addFilesComponent->lookForFilesAndAdd())
+        FileChooser chooser("Select files to add");
+        
+        if(chooser.browseForMultipleFilesOrDirectories())
         {
-            addFilesWindow->setVisible(true);
+            if(addFilesComponent->processAndAddFiles(chooser.getResults()))
+            {
+                addFilesWindow->setVisible(true);
+            }
         }
     }
 }

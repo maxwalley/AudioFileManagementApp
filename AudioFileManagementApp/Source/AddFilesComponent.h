@@ -26,18 +26,18 @@ public:
 };
 
 class AddFilesComponent  : public Component,
-                           public Button::Listener
+                           public Button::Listener,
+                           public FileDragAndDropTarget
 {
 public:
-    AddFilesComponent(juce::ValueTree currentData);
+    AddFilesComponent(ValueTree currentData);
     ~AddFilesComponent() override;
 
-    void paint (juce::Graphics&) override;
+    void paintOverChildren (juce::Graphics&) override;
     void resized() override;
     
-    //Opens a file browser and adds the files to the component
-    //Returns whether valid files were selected
-    bool lookForFilesAndAdd();
+    bool processAndAddFiles(const Array<File>& filesToAdd);
+    void addFiles(const Array<File>& filesToAdd);
 
 private:
     
@@ -45,11 +45,23 @@ private:
     
     void buttonClicked(Button* button) override;
     
+    bool isInterestedInFileDrag(const StringArray& files) override;
+    
+    void filesDropped(const StringArray& files, int x, int y) override;
+    
+    void fileDragEnter(const StringArray& files, int x, int y) override;
+    
+    void fileDragExit(const StringArray& files) override;
+    
+    void fileDragMove(const StringArray& files, int x, int y) override;
+    
     ValueTree newFileData;
     ListBox fileList;
     AddFilesListModel listModel;
     
     AddFilesParameterEditor paramEditor;
+    
+    bool filesDragged;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesComponent)
 };

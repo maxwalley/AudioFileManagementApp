@@ -25,7 +25,7 @@ int FileArraySorter::compareElements(File& first, File& second) const
 }
 
 
-AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData)
+AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData), filesDragged(false)
 {
     setSize(600, 400);
     
@@ -44,9 +44,17 @@ AddFilesComponent::~AddFilesComponent()
 {
 }
 
-void AddFilesComponent::paint (juce::Graphics& g)
+void AddFilesComponent::paintOverChildren (juce::Graphics& g)
 {
-    
+    if(filesDragged)
+    {
+        g.setColour(Colour::fromFloatRGBA(192.0, 192.0, 192.0, 0.7));
+        g.fillRect(0, 0, getWidth() / 2, getHeight());
+        
+        g.setColour(Colours::black);
+        g.setFont(Font(18));
+        g.drawText("Drop Files To Add", 0, getHeight() / 2, getWidth() / 2, 18, Justification::centred | Justification::verticallyCentred);
+    }
 }
 
 void AddFilesComponent::resized()
@@ -55,72 +63,66 @@ void AddFilesComponent::resized()
     paramEditor.setBounds(getWidth() / 2, 0, getWidth() / 2, getHeight());
 }
 
-bool AddFilesComponent::lookForFilesAndAdd()
+bool AddFilesComponent::processAndAddFiles(const Array<File>& filesToAdd)
 {
-    Array<File> filesToAdd;
+    Array<File> newFiles = filesToAdd;
     
-    FileChooser chooser("Select files to add");
-    
-    if(chooser.browseForMultipleFilesOrDirectories())
+    for(int i = 0; i < newFiles.size(); i++)
     {
-        filesToAdd = chooser.getResults();
-        
-        for(int i = 0; i < filesToAdd.size(); i++)
+        //Unpacks any directories
+        if(newFiles[i].isDirectory())
         {
-            //Unpacks any directories
-            if(filesToAdd[i].isDirectory())
-            {
-                Array<File> directoryFiles = filesToAdd[i].findChildFiles(File::findFiles, true);
-                
-                filesToAdd.insertArray(i + 1, directoryFiles.data(), directoryFiles.size());
-                
-                filesToAdd.remove(i);
-                
-                i--;
-            }
+            Array<File> directoryFiles = newFiles[i].findChildFiles(File::findFiles, true);
             
-            //Unpacks a zip file
-            else if(filesToAdd[i].getFileExtension() == ".zip")
-            {
-                ZipFile zip(filesToAdd[i]);
-                
-                File newFolderToUnzipTo(filesToAdd[i].getFullPathName().trimCharactersAtEnd(".zip"));
-                
-                zip.uncompressTo(newFolderToUnzipTo);
-                
-                Array<File> directoryFiles = newFolderToUnzipTo.findChildFiles(File::findFiles, true);
-                
-                filesToAdd.insertArray(i + 1, directoryFiles.data(), directoryFiles.size());
-                
-                filesToAdd.remove(i);
-                
-                i--;
-            }
+            newFiles.insertArray(i + 1, directoryFiles.data(), directoryFiles.size());
+            
+            newFiles.remove(i);
+            
+            i--;
         }
         
-        if(filesToAdd.isEmpty())
+        //Unpacks a zip file
+        else if(newFiles[i].getFileExtension() == ".zip")
         {
-            return false;
+            ZipFile zip(newFiles[i]);
+            
+            File newFolderToUnzipTo(filesToAdd[i].getFullPathName().trimCharactersAtEnd(".zip"));
+            
+            zip.uncompressTo(newFolderToUnzipTo);
+            
+            Array<File> directoryFiles = newFolderToUnzipTo.findChildFiles(File::findFiles, true);
+            
+            newFiles.insertArray(i + 1, directoryFiles.data(), directoryFiles.size());
+            
+            newFiles.remove(i);
+            
+            i--;
         }
-        
-        FileArraySorter arraySorter;
-        filesToAdd.sort(arraySorter);
-        
-        //Move this data into a value tree
-        //Have the model work from the valueTree
-        
-        std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
-        {
-            ValueTree fileTree("File");
-            fileTree.setProperty("Path", file.getFullPathName(), nullptr);
-            newFileData.addChild(fileTree, -1, nullptr);
-        });
-        
-        fileList.updateContent();
-        
-        return true;
     }
-    return false;
+    
+    if(newFiles.isEmpty())
+    {
+        return false;
+    }
+    
+    FileArraySorter sorter;
+    newFiles.sort(sorter);
+    
+    addFiles(newFiles);
+    
+    return true;
+}
+
+void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
+{
+    std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
+    {
+        ValueTree fileTree("File");
+        fileTree.setProperty("Path", file.getFullPathName(), nullptr);
+        newFileData.addChild(fileTree, -1, nullptr);
+    });
+    
+    fileList.updateContent();
 }
 
 void AddFilesComponent::buttonClicked(Button* button)
@@ -139,5 +141,61 @@ void AddFilesComponent::buttonClicked(Button* button)
                 componentToChange->setButtonState(button->getToggleState(), sendNotification);
             }
         }
+    }
+}
+
+bool AddFilesComponent::isInterestedInFileDrag(const StringArray& files)
+{
+    return true;
+}
+
+void AddFilesComponent::filesDropped(const StringArray& files, int x, int y)
+{
+    if(x <= getWidth() / 2)
+    {
+        Array<File> filesToAdd;
+        
+        std::for_each(files.begin(), files.end(), [&filesToAdd](const String& file)
+        {
+            filesToAdd.add(File(file));
+        });
+        
+        processAndAddFiles(filesToAdd);
+        
+        filesDragged = false;
+        repaint();
+    }
+}
+
+void AddFilesComponent::fileDragEnter(const StringArray& files, int x, int y)
+{
+    if(x <= getWidth() / 2 && !filesDragged)
+    {
+        filesDragged = true;
+        repaint();
+    }
+}
+
+void AddFilesComponent::fileDragExit(const StringArray& files)
+{
+    if(filesDragged)
+    {
+        filesDragged = false;
+        repaint();
+    }
+}
+
+void AddFilesComponent::fileDragMove(const StringArray& files, int x, int y)
+{
+    if(x > getWidth() / 2 && filesDragged)
+    {
+        filesDragged = false;
+        repaint();
+    }
+    
+    else if(x <= getWidth() / 2 && !filesDragged)
+    {
+        filesDragged = true;
+        repaint();
     }
 }
