@@ -126,6 +126,7 @@ bool ToggleItem::getCompleted() const
 void ToggleItem::setCompleted(bool newCompleted)
 {
     completed = newCompleted;
+    repaint();
 }
 
 AddFilesListModel::AddFilesListModel(ValueTree dataModel, Button::Listener* itemButtonListener) : toggleButtonLis(itemButtonListener), dataToDisplay(dataModel)

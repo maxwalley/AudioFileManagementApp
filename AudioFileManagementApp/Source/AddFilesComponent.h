@@ -41,8 +41,6 @@ public:
 
 private:
     
-    ErrorSymbol test;
-    
     void buttonClicked(Button* button) override;
     
     bool isInterestedInFileDrag(const StringArray& files) override;
@@ -54,6 +52,10 @@ private:
     void fileDragExit(const StringArray& files) override;
     
     void fileDragMove(const StringArray& files, int x, int y) override;
+    
+    Array<ValueTree> getSelectedItems();
+    
+    void refreshFilesToShow();
     
     ValueTree newFileData;
     ListBox fileList;

@@ -20,7 +20,8 @@ using namespace juce;
 
 class ValueTreeItem  : public TreeViewItem,
                        public MouseListener,
-                       public Label::Listener
+                       public Label::Listener,
+                       public ValueTree::Listener
 {
 public:
     ValueTreeItem(ValueTree treeToDisplay);
@@ -30,15 +31,23 @@ public:
     
     String getUniqueName() const override;
     
-    void itemOpennessChanged(bool isNowOpen) override;
-    
     Component* createItemComponent() override;
+    
+    void itemSelectionChanged(bool isSelected) override;
     
     void mouseDown(const MouseEvent& event) override;
     
     void labelTextChanged(Label* label) override;
     
+    void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
+    
+    void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int index) override;
+    
+    void valueTreeChildOrderChanged(ValueTree& parentTree, int oldIndex, int newIndex) override;
+    
     ValueTree getShownTree() const;
+    
+    void refreshChildren();
     
 private:
     ValueTree tree;
@@ -54,6 +63,8 @@ public:
 
     void paint (Graphics&) override;
     void resized() override;
+    
+    void setDataToShow(ValueTree newData);
 
 private:
     
@@ -62,6 +73,8 @@ private:
     bool keyPressed(const KeyPress& key) override;
     
     void deleteSelectedItems();
+    
+    void lookAndHighlightCatagory(const String& catagory, TreeViewItem* treeToSearch);
     
     Label titleLabel;
     
@@ -78,6 +91,8 @@ private:
     Label verbLabel;
     
     TextEditor descripEditor;
+    
+    ValueTree dataToShow;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesParameterEditor)
 };

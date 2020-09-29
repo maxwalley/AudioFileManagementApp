@@ -13,7 +13,9 @@
 
 ValueTreeItem::ValueTreeItem(ValueTree treeToDisplay) : tree(treeToDisplay)
 {
+    refreshChildren();
     
+    tree.addListener(this);
 }
 
 ValueTreeItem::~ValueTreeItem()
@@ -31,20 +33,6 @@ String ValueTreeItem::getUniqueName() const
     return tree.getProperty("Name").toString();
 }
 
-void ValueTreeItem::itemOpennessChanged(bool isNowOpen)
-{
-    if(isNowOpen)
-    {
-        if(!getNumSubItems())
-        {
-            std::for_each(tree.begin(), tree.end(), [this](ValueTree curTree)
-            {
-                addSubItem(new ValueTreeItem(curTree));
-            });
-        }
-    }
-}
-
 Component* ValueTreeItem::createItemComponent()
 {
     Label* newLabel = new Label();
@@ -57,18 +45,21 @@ Component* ValueTreeItem::createItemComponent()
     return newLabel;
 }
 
-void ValueTreeItem::mouseDown(const MouseEvent& event)
+void ValueTreeItem::itemSelectionChanged(bool isSelected)
 {
-    setSelected(!isSelected(), false, dontSendNotification);
-    
-    if(isSelected())
+    if(isSelected)
     {
-        event.originalComponent->setColour(juce::Label::backgroundColourId, juce::Colours::black);
+        //event.originalComponent->setColour(juce::Label::backgroundColourId, juce::Colours::black);
     }
     else
     {
-        event.originalComponent->setColour(juce::Label::backgroundColourId, juce::Colours::silver);
+        //event.originalComponent->setColour(juce::Label::backgroundColourId, juce::Colours::silver);
     }
+}
+
+void ValueTreeItem::mouseDown(const MouseEvent& event)
+{
+    setSelected(!isSelected(), false, dontSendNotification);
 }
 
 void ValueTreeItem::labelTextChanged(Label* label)
@@ -76,9 +67,46 @@ void ValueTreeItem::labelTextChanged(Label* label)
     tree.setProperty("Name", label->getText(), nullptr);
 }
 
+void ValueTreeItem::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
+{
+    if(parentTree == tree)
+    {
+        addSubItem(new ValueTreeItem(childWhichHasBeenAdded));
+    }
+}
+
+void ValueTreeItem::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int index)
+{
+    if(parentTree == tree)
+    {
+        removeSubItem(index);
+    }
+}
+
+void ValueTreeItem::valueTreeChildOrderChanged(ValueTree& parentTree, int oldIndex, int newIndex)
+{
+    if(parentTree == tree)
+    {
+        refreshChildren();
+    }
+}
+
 ValueTree ValueTreeItem::getShownTree() const
 {
     return tree;
+}
+
+void ValueTreeItem::refreshChildren()
+{
+    if(getNumSubItems() != tree.getNumChildren())
+    {
+        clearSubItems();
+        
+        std::for_each(tree.begin(), tree.end(), [this](ValueTree curTree)
+        {
+            addSubItem(new ValueTreeItem(curTree));
+        });
+    }
 }
 
 //==============================================================================
@@ -104,7 +132,6 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     
     addAndMakeVisible(removeCatButton);
     removeCatButton.addListener(this);
-    //Remove catagory needs to remove it from the fx!!!
     removeCatButton.setTooltip("Remove all selected catagories. Warning: this will remove this catagory from all fx using it");
     
     addAndMakeVisible(nounLabel);
@@ -129,6 +156,11 @@ AddFilesParameterEditor::~AddFilesParameterEditor()
 
 void AddFilesParameterEditor::paint (juce::Graphics& g)
 {
+    if(!dataToShow.isValid())
+    {
+        return;
+    }
+    
     if(!newVersionToggle.getToggleState())
     {
         g.drawText("Choose Catagories", 0, 80, getWidth(), 10, Justification::left);
@@ -141,6 +173,27 @@ void AddFilesParameterEditor::paint (juce::Graphics& g)
 void AddFilesParameterEditor::resized()
 {
     titleLabel.setBounds(getWidth() / 3, 10, getWidth() / 3, 40);
+    
+    if(!dataToShow.isValid())
+    {
+        
+        newVersionToggle.setVisible(false);
+        catagoryViewer.setVisible(false);
+        newCatButton.setVisible(false);
+        removeCatButton.setVisible(false);
+        nounLabel.setVisible(false);
+        verbLabel.setVisible(false);
+        descripEditor.setVisible(false);
+        return;
+    }
+    
+    catagoryViewer.setVisible(true);
+    newVersionToggle.setVisible(true);
+    newCatButton.setVisible(true);
+    removeCatButton.setVisible(true);
+    nounLabel.setVisible(true);
+    verbLabel.setVisible(true);
+    descripEditor.setVisible(true);
     
     newVersionToggle.setBounds(getWidth() / 6 * 5, 50, 22, 20);
     
@@ -157,6 +210,47 @@ void AddFilesParameterEditor::resized()
     {
         catagoryViewer.setVisible(false);
     }
+}
+
+void AddFilesParameterEditor::setDataToShow(ValueTree newData)
+{
+    dataToShow = newData;
+    resized();
+    repaint();
+    
+    descripEditor.setText(dataToShow.getProperty("Keywords"));
+    
+    dataToShow.setProperty("Catagories", "Animals, Bike, Frui", nullptr);
+    
+    StringArray catNames;
+    
+    String unprocessedNames = dataToShow.getProperty("Catagories");
+    
+    bool stop = false;
+    
+    while(stop == false)
+    {
+        String substring = unprocessedNames.fromLastOccurrenceOf(",", false, true);
+        
+        if(substring == unprocessedNames)
+        {
+            stop = true;
+        }
+        else
+        {
+            unprocessedNames = unprocessedNames.trimCharactersAtEnd(substring);
+            unprocessedNames = unprocessedNames.trimCharactersAtEnd(",");
+            
+            substring = substring.trimCharactersAtStart(" ");
+        }
+        
+        catNames.add(substring);
+    }
+    
+    std::for_each(catNames.begin(), catNames.end(), [this](const String& cat)
+    {
+        lookAndHighlightCatagory(cat, catagoryViewer.getRootItem());
+    });
 }
 
 void AddFilesParameterEditor::buttonClicked(Button* button)
@@ -179,7 +273,6 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
                 ValueTree newChild("Catagory");
                 newChild.setProperty("Name", "New Catagory", nullptr);
                 rootItem->getShownTree().appendChild(newChild, nullptr);
-                rootItem->addSubItem(new ValueTreeItem(newChild));
             }
             
             return;
@@ -198,8 +291,6 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
             newChild.setProperty("Name", "New Catagory", nullptr);
             
             selectedItem->getShownTree().appendChild(newChild, nullptr);
-            
-            selectedItem->addSubItem(new ValueTreeItem(newChild));
         }
     }
     
@@ -244,8 +335,34 @@ void AddFilesParameterEditor::deleteSelectedItems()
         
         selectedTree.getParent().removeChild(selectedTree, nullptr);
         
-        selectedItem->getParentItem()->removeSubItem(selectedItem->getIndexInParent());
     }*/
         DBG("This is not yet implemented - catagories will need to be removed from fx");
+    }
+}
+
+void AddFilesParameterEditor::lookAndHighlightCatagory(const String& catagory, TreeViewItem* treeToSearch)
+{
+    DBG("Name being searched is " << catagory);
+    
+    for(int i = 0; i < treeToSearch->getNumSubItems(); i++)
+    {
+        ValueTreeItem* tree = dynamic_cast<ValueTreeItem*>(treeToSearch->getSubItem(i));
+        
+        if(tree == nullptr)
+        {
+            continue;
+        }
+        
+        if(tree->getShownTree().getProperty("Name").toString() == catagory)
+        {
+            tree->getParentItem()->setOpen(true);
+            tree->setSelected(true, false);
+            return;
+        }
+        
+        if(tree->getNumSubItems() > 0)
+        {
+            lookAndHighlightCatagory(catagory, tree);
+        }
     }
 }

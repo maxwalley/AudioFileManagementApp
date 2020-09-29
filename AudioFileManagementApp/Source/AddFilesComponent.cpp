@@ -30,12 +30,8 @@ AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData(
     setSize(600, 400);
     
     addAndMakeVisible(fileList);
-    
     fileList.setModel(&listModel);
-    
     fileList.setColour(ListBox::backgroundColourId, Colours::white);
-    
-    addAndMakeVisible(test);
     
     addAndMakeVisible(paramEditor);
 }
@@ -142,6 +138,8 @@ void AddFilesComponent::buttonClicked(Button* button)
             }
         }
     }
+    
+    refreshFilesToShow();
 }
 
 bool AddFilesComponent::isInterestedInFileDrag(const StringArray& files)
@@ -196,6 +194,78 @@ void AddFilesComponent::fileDragMove(const StringArray& files, int x, int y)
     else if(x <= getWidth() / 2 && !filesDragged)
     {
         filesDragged = true;
+        refreshFilesToShow();
         repaint();
     }
+}
+
+Array<ValueTree> AddFilesComponent::getSelectedItems()
+{
+    Array<ValueTree> selectedTrees;
+    
+    for(int i = 0; i < listModel.getNumRows(); i++)
+    {
+        ToggleItem* currentItem = dynamic_cast<ToggleItem*>(fileList.getComponentForRowNumber(i));
+        
+        if(currentItem == nullptr)
+        {
+            continue;
+        }
+        
+        if(currentItem->getButtonState())
+        {
+            selectedTrees.add(newFileData.getChild(i));
+        }
+    }
+    
+    return selectedTrees;
+}
+
+void AddFilesComponent::refreshFilesToShow()
+{
+    Array<ValueTree> selectedTrees = getSelectedItems();
+    
+    if(selectedTrees.size() == 0)
+    {
+        paramEditor.setDataToShow(ValueTree());
+        return;
+    }
+    
+    if(selectedTrees.size() == 1)
+    {
+        paramEditor.setDataToShow(selectedTrees[0]);
+        return;
+    }
+    
+    //If more than one
+    ValueTree combinationOfTrees;
+    
+    ValueTree compTree = selectedTrees[0];
+    
+    //Iterates through the trees comparing them to the compTree
+    for(int i = 1; i < selectedTrees.size(); i++)
+    {
+        if(!selectedTrees[i].getProperty("Catagories").equalsWithSameType(compTree.getProperty("Catagories")))
+        {
+            combinationOfTrees.setProperty("Catagories", "", nullptr);
+        }
+        
+        if(!selectedTrees[i].getProperty("Keywords").equalsWithSameType(compTree.getProperty("Keywords")))
+        {
+            combinationOfTrees.setProperty("Keywords", "Multiple Values", nullptr);
+        }
+    }
+    
+    //If no differences have been found it sets this to the comp value
+    if(!combinationOfTrees.hasProperty("Catagories"))
+    {
+        combinationOfTrees.setProperty("Catagories", compTree.getProperty("Catagories"), nullptr);
+    }
+    
+    if(!combinationOfTrees.hasProperty("Keywords"))
+    {
+        combinationOfTrees.setProperty("Keywords", compTree.getProperty("Keywords"), nullptr);
+    }
+    
+    paramEditor.setDataToShow(combinationOfTrees);
 }
