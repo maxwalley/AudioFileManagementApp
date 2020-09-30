@@ -49,8 +49,33 @@ public:
     
     void refreshChildren();
     
+    class Listener
+    {
+    public:
+        virtual ~Listener(){};
+        
+        virtual void ItemSelected(ValueTreeItem* item, bool selection) = 0;
+    };
+    
+    void addListener(Listener* newListener);
+    void removeListener(Listener* listenerToRemove);
+    
 private:
     ValueTree tree;
+    
+    std::vector<Listener*> listeners;
+};
+
+
+class ItemLabel  : public Label,
+                   public ValueTreeItem::Listener
+{
+public:
+    ItemLabel();
+    ~ItemLabel();
+    
+    void ItemSelected(ValueTreeItem* item, bool selection) override;
+    
 };
 
 

@@ -20,7 +20,6 @@ ValueTreeItem::ValueTreeItem(ValueTree treeToDisplay) : tree(treeToDisplay)
 
 ValueTreeItem::~ValueTreeItem()
 {
-    
 }
 
 bool ValueTreeItem::mightContainSubItems()
@@ -35,31 +34,35 @@ String ValueTreeItem::getUniqueName() const
 
 Component* ValueTreeItem::createItemComponent()
 {
-    Label* newLabel = new Label();
+    ItemLabel* newLabel = new ItemLabel();
     
     newLabel->setText(tree.getProperty("Name"), dontSendNotification);
     newLabel->setEditable(false, true);
     newLabel->addMouseListener(this, false);
     newLabel->addListener(this);
     
+    addListener(newLabel);
+    
+    //Cheekily updates the selection in the gui - very quick fix
+    std::for_each(listeners.begin(), listeners.end(), [this](Listener* lis)
+    {
+        lis->ItemSelected(this, isSelected());
+    });
+    
     return newLabel;
 }
 
 void ValueTreeItem::itemSelectionChanged(bool isSelected)
 {
-    if(isSelected)
+    std::for_each(listeners.begin(), listeners.end(), [this, isSelected](Listener* lis)
     {
-        //event.originalComponent->setColour(juce::Label::backgroundColourId, juce::Colours::black);
-    }
-    else
-    {
-        //event.originalComponent->setColour(juce::Label::backgroundColourId, juce::Colours::silver);
-    }
+        lis->ItemSelected(this, isSelected);
+    });
 }
 
 void ValueTreeItem::mouseDown(const MouseEvent& event)
 {
-    setSelected(!isSelected(), false, dontSendNotification);
+    setSelected(!isSelected(), false);
 }
 
 void ValueTreeItem::labelTextChanged(Label* label)
@@ -107,6 +110,39 @@ void ValueTreeItem::refreshChildren()
             addSubItem(new ValueTreeItem(curTree));
         });
     }
+}
+
+void ValueTreeItem::addListener(Listener* newListener)
+{
+    listeners.push_back(newListener);
+}
+
+void ValueTreeItem::removeListener(Listener* listenerToRemove)
+{
+    std::remove(listeners.begin(), listeners.end(), listenerToRemove);
+}
+
+
+//==============================================================================
+ItemLabel::ItemLabel()
+{
+    
+}
+
+ItemLabel::~ItemLabel()
+{
+    
+}
+
+void ItemLabel::ItemSelected(ValueTreeItem* item, bool selection)
+{
+    if(selection)
+    {
+        setColour(Label::backgroundColourId, Colours::black);
+        return;
+    }
+    
+    setColour(Label::backgroundColourId, Colours::silver);
 }
 
 //==============================================================================
@@ -176,7 +212,6 @@ void AddFilesParameterEditor::resized()
     
     if(!dataToShow.isValid())
     {
-        
         newVersionToggle.setVisible(false);
         catagoryViewer.setVisible(false);
         newCatButton.setVisible(false);
@@ -218,39 +253,49 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
     resized();
     repaint();
     
-    descripEditor.setText(dataToShow.getProperty("Keywords"));
-    
-    dataToShow.setProperty("Catagories", "Animals, Bike, Frui", nullptr);
-    
-    StringArray catNames;
-    
-    String unprocessedNames = dataToShow.getProperty("Catagories");
-    
-    bool stop = false;
-    
-    while(stop == false)
+    //If something has been sent
+    if(dataToShow.isValid())
     {
-        String substring = unprocessedNames.fromLastOccurrenceOf(",", false, true);
+        descripEditor.setText(dataToShow.getProperty("Keywords"));
         
-        if(substring == unprocessedNames)
+        dataToShow.setProperty("Catagories", "Animals, Bike, Frui", nullptr);
+    
+        StringArray catNames;
+    
+        String unprocessedNames = dataToShow.getProperty("Catagories");
+    
+        bool stop = false;
+    
+        while(stop == false)
         {
-            stop = true;
-        }
-        else
-        {
-            unprocessedNames = unprocessedNames.trimCharactersAtEnd(substring);
-            unprocessedNames = unprocessedNames.trimCharactersAtEnd(",");
+            String substring = unprocessedNames.fromLastOccurrenceOf(",", false, true);
+        
+            if(substring == unprocessedNames)
+            {
+                stop = true;
+            }
+            else
+            {
+                unprocessedNames = unprocessedNames.trimCharactersAtEnd(substring);
+                unprocessedNames = unprocessedNames.trimCharactersAtEnd(",");
             
-            substring = substring.trimCharactersAtStart(" ");
-        }
+                substring = substring.trimCharactersAtStart(" ");
+            }
         
-        catNames.add(substring);
+            catNames.add(substring);
+        }
+    
+        std::for_each(catNames.begin(), catNames.end(), [this](const String& cat)
+        {
+            lookAndHighlightCatagory(cat, catagoryViewer.getRootItem());
+        });
     }
     
-    std::for_each(catNames.begin(), catNames.end(), [this](const String& cat)
+    else
     {
-        lookAndHighlightCatagory(cat, catagoryViewer.getRootItem());
-    });
+        descripEditor.setText("");
+        catagoryViewer.clearSelectedItems();
+    }
 }
 
 void AddFilesParameterEditor::buttonClicked(Button* button)
@@ -342,8 +387,6 @@ void AddFilesParameterEditor::deleteSelectedItems()
 
 void AddFilesParameterEditor::lookAndHighlightCatagory(const String& catagory, TreeViewItem* treeToSearch)
 {
-    DBG("Name being searched is " << catagory);
-    
     for(int i = 0; i < treeToSearch->getNumSubItems(); i++)
     {
         ValueTreeItem* tree = dynamic_cast<ValueTreeItem*>(treeToSearch->getSubItem(i));

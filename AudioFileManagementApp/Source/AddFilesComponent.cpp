@@ -225,6 +225,7 @@ void AddFilesComponent::refreshFilesToShow()
 {
     Array<ValueTree> selectedTrees = getSelectedItems();
     
+    
     if(selectedTrees.size() == 0)
     {
         paramEditor.setDataToShow(ValueTree());
@@ -238,7 +239,7 @@ void AddFilesComponent::refreshFilesToShow()
     }
     
     //If more than one
-    ValueTree combinationOfTrees;
+    ValueTree combinationOfTrees("File");
     
     ValueTree compTree = selectedTrees[0];
     
