@@ -25,7 +25,7 @@ int FileArraySorter::compareElements(File& first, File& second) const
 }
 
 
-AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData), filesDragged(false)
+AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData), filesDragged(false), addFilesButton("Add Files")
 {
     setSize(600, 400);
     
@@ -34,13 +34,22 @@ AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData(
     fileList.setColour(ListBox::backgroundColourId, Colours::white);
     
     addAndMakeVisible(paramEditor);
+    
+    addAndMakeVisible(addFilesButton);
+    addFilesButton.addListener(this);
 }
 
 AddFilesComponent::~AddFilesComponent()
 {
 }
 
-void AddFilesComponent::paintOverChildren (juce::Graphics& g)
+void AddFilesComponent::paint (Graphics& g)
+{
+    g.setColour(Colours::white);
+    g.fillRect(0, getHeight() - 30, getWidth() / 2, 30);
+}
+
+void AddFilesComponent::paintOverChildren (Graphics& g)
 {
     if(filesDragged)
     {
@@ -55,8 +64,10 @@ void AddFilesComponent::paintOverChildren (juce::Graphics& g)
 
 void AddFilesComponent::resized()
 {
-    fileList.setBounds(0, 0, getWidth() / 2, getHeight());
+    fileList.setBounds(0, 0, getWidth() / 2, getHeight() - 30);
     paramEditor.setBounds(getWidth() / 2, 0, getWidth() / 2, getHeight());
+    
+    addFilesButton.setBounds(getWidth() / 4 - 50, getHeight() - 30, 100, 30);
 }
 
 bool AddFilesComponent::processAndAddFiles(const Array<File>& filesToAdd)
@@ -115,6 +126,8 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
     {
         ValueTree fileTree("File");
         fileTree.setProperty("Path", file.getFullPathName(), nullptr);
+        fileTree.setProperty("Catagories", "", nullptr);
+        fileTree.setProperty("Keywords", "", nullptr);
         newFileData.addChild(fileTree, -1, nullptr);
     });
     
@@ -123,6 +136,12 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
 
 void AddFilesComponent::buttonClicked(Button* button)
 {
+    if(button == &addFilesButton)
+    {
+        //If all are ready - add them to main data stream and close this window.
+        //Otherwise highlight the ones which are not
+    }
+    
     ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());
     
     //Last row
@@ -134,7 +153,7 @@ void AddFilesComponent::buttonClicked(Button* button)
             
             if(componentToChange != nullptr)
             {
-                componentToChange->setButtonState(button->getToggleState(), sendNotification);
+                componentToChange->setButtonState(button->getToggleState(), dontSendNotification);
             }
         }
     }
@@ -203,7 +222,7 @@ Array<ValueTree> AddFilesComponent::getSelectedItems()
 {
     Array<ValueTree> selectedTrees;
     
-    for(int i = 0; i < listModel.getNumRows(); i++)
+    for(int i = 0; i < listModel.getNumRows() - 1; i++)
     {
         ToggleItem* currentItem = dynamic_cast<ToggleItem*>(fileList.getComponentForRowNumber(i));
         

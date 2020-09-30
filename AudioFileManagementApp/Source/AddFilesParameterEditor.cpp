@@ -34,30 +34,33 @@ String ValueTreeItem::getUniqueName() const
 
 Component* ValueTreeItem::createItemComponent()
 {
-    ItemLabel* newLabel = new ItemLabel();
+    Label* newLabel = new Label();
     
     newLabel->setText(tree.getProperty("Name"), dontSendNotification);
     newLabel->setEditable(false, true);
     newLabel->addMouseListener(this, false);
     newLabel->addListener(this);
     
-    addListener(newLabel);
-    
-    //Cheekily updates the selection in the gui - very quick fix
-    std::for_each(listeners.begin(), listeners.end(), [this](Listener* lis)
-    {
-        lis->ItemSelected(this, isSelected());
-    });
-    
     return newLabel;
+}
+
+void ValueTreeItem::paintItem(Graphics& g, int width, int height)
+{
+    if(!isSelected())
+    {
+        g.setColour(Colours::silver);
+    }
+    else
+    {
+        g.setColour(Colours::black);
+    }
+    
+    g.fillAll();
 }
 
 void ValueTreeItem::itemSelectionChanged(bool isSelected)
 {
-    std::for_each(listeners.begin(), listeners.end(), [this, isSelected](Listener* lis)
-    {
-        lis->ItemSelected(this, isSelected);
-    });
+    repaintItem();
 }
 
 void ValueTreeItem::mouseDown(const MouseEvent& event)
@@ -110,39 +113,6 @@ void ValueTreeItem::refreshChildren()
             addSubItem(new ValueTreeItem(curTree));
         });
     }
-}
-
-void ValueTreeItem::addListener(Listener* newListener)
-{
-    listeners.push_back(newListener);
-}
-
-void ValueTreeItem::removeListener(Listener* listenerToRemove)
-{
-    std::remove(listeners.begin(), listeners.end(), listenerToRemove);
-}
-
-
-//==============================================================================
-ItemLabel::ItemLabel()
-{
-    
-}
-
-ItemLabel::~ItemLabel()
-{
-    
-}
-
-void ItemLabel::ItemSelected(ValueTreeItem* item, bool selection)
-{
-    if(selection)
-    {
-        setColour(Label::backgroundColourId, Colours::black);
-        return;
-    }
-    
-    setColour(Label::backgroundColourId, Colours::silver);
 }
 
 //==============================================================================

@@ -33,7 +33,8 @@ public:
     AddFilesComponent(ValueTree currentData);
     ~AddFilesComponent() override;
 
-    void paintOverChildren (juce::Graphics&) override;
+    void paint(Graphics& g) override;
+    void paintOverChildren (Graphics& g) override;
     void resized() override;
     
     bool processAndAddFiles(const Array<File>& filesToAdd);
@@ -64,6 +65,8 @@ private:
     AddFilesParameterEditor paramEditor;
     
     bool filesDragged;
+    
+    TextButton addFilesButton;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesComponent)
 };
