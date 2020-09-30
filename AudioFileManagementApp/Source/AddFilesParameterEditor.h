@@ -56,7 +56,9 @@ private:
 
 
 class AddFilesParameterEditor  : public Component,
-                                 public Button::Listener
+                                 public Button::Listener,
+                                 public Label::Listener,
+                                 public TextEditor::Listener
 {
 public:
     AddFilesParameterEditor(juce::ValueTree currentData);
@@ -66,12 +68,30 @@ public:
     void resized() override;
     
     void setDataToShow(ValueTree newData);
+    
+    bool isDataReady() const;
+    
+    class Listener
+    {
+    public:
+        Listener(){};
+        virtual ~Listener(){};
+        
+        virtual void dataChanged()=0;
+    };
+    
+    void addListener(Listener* newListener);
+    void removeListener(Listener* listenerToRemove);
 
 private:
     
     void buttonClicked(Button* button) override;
     
     bool keyPressed(const KeyPress& key) override;
+    
+    void labelTextChanged(Label* label) override;
+    
+    void textEditorTextChanged(TextEditor& editor) override;
     
     void deleteSelectedItems();
     
@@ -94,6 +114,8 @@ private:
     TextEditor descripEditor;
     
     ValueTree dataToShow;
+    
+    std::vector<Listener*> listeners;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesParameterEditor)
 };

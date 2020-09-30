@@ -143,16 +143,19 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     addAndMakeVisible(nounLabel);
     nounLabel.setColour(Label::ColourIds::outlineColourId, Colours::black);
     nounLabel.setEditable(true);
+    nounLabel.addListener(this);
     
     addAndMakeVisible(verbLabel);
     verbLabel.setColour(Label::ColourIds::outlineColourId, Colours::black);
     verbLabel.setEditable(true);
+    verbLabel.addListener(this);
     
     addAndMakeVisible(descripEditor);
     descripEditor.setMultiLine(true);
     descripEditor.setColour(TextEditor::ColourIds::backgroundColourId, Colours::silver);
     descripEditor.setColour(TextEditor::outlineColourId, Colours::black);
     descripEditor.setTooltip("These words should describe the effect and be seperated with a ','");
+    descripEditor.addListener(this);
 }
 
 AddFilesParameterEditor::~AddFilesParameterEditor()
@@ -268,6 +271,30 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
     }
 }
 
+bool AddFilesParameterEditor::isDataReady() const
+{
+    if(!newVersionToggle.getToggleState())
+    {
+        //This could be extended to check if the catagory viewer has any selected items
+        if(nounLabel.getText().isEmpty() || verbLabel.getText().isEmpty() || descripEditor.getText().isEmpty() )
+        {
+            return false;
+        }
+        
+        return true;
+    }
+}
+
+void AddFilesParameterEditor::addListener(Listener* newListener)
+{
+    listeners.push_back(newListener);
+}
+
+void AddFilesParameterEditor::removeListener(Listener* listenerToRemove)
+{
+    std::remove(listeners.begin(), listeners.end(), listenerToRemove);
+}
+
 void AddFilesParameterEditor::buttonClicked(Button* button)
 {
     if(button == &newVersionToggle)
@@ -323,6 +350,22 @@ bool AddFilesParameterEditor::keyPressed(const KeyPress& key)
     }
     
     return true;
+}
+
+void AddFilesParameterEditor::labelTextChanged(Label* label)
+{
+    std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
+    {
+        lis->dataChanged();
+    });
+}
+
+void AddFilesParameterEditor::textEditorTextChanged(TextEditor& editor)
+{
+    std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
+    {
+        lis->dataChanged();
+    });
 }
 
 void AddFilesParameterEditor::deleteSelectedItems()

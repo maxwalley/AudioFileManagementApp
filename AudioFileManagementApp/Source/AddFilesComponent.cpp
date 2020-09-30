@@ -34,6 +34,7 @@ AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData(
     fileList.setColour(ListBox::backgroundColourId, Colours::white);
     
     addAndMakeVisible(paramEditor);
+    paramEditor.addListener(this);
     
     addAndMakeVisible(addFilesButton);
     addFilesButton.addListener(this);
@@ -216,6 +217,11 @@ void AddFilesComponent::fileDragMove(const StringArray& files, int x, int y)
         refreshFilesToShow();
         repaint();
     }
+}
+
+void AddFilesComponent::dataChanged()
+{
+    //checks if data is ready and if so changes the ready symbol on the selected items
 }
 
 Array<ValueTree> AddFilesComponent::getSelectedItems()

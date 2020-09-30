@@ -27,7 +27,8 @@ public:
 
 class AddFilesComponent  : public Component,
                            public Button::Listener,
-                           public FileDragAndDropTarget
+                           public FileDragAndDropTarget,
+                           public AddFilesParameterEditor::Listener
 {
 public:
     AddFilesComponent(ValueTree currentData);
@@ -53,6 +54,8 @@ private:
     void fileDragExit(const StringArray& files) override;
     
     void fileDragMove(const StringArray& files, int x, int y) override;
+    
+    void dataChanged() override;
     
     Array<ValueTree> getSelectedItems();
     
