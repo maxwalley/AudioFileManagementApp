@@ -229,39 +229,44 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
     //If something has been sent
     if(dataToShow.isValid())
     {
-        descripEditor.setText(dataToShow.getProperty("Keywords"));
+        //This all needs to be changed to deal with new way of dealing with catagories and keywords
         
-        dataToShow.setProperty("Catagories", "Animals, Bike, Frui", nullptr);
-    
-        StringArray catNames;
-    
-        String unprocessedNames = dataToShow.getProperty("Catagories");
-    
-        bool stop = false;
-    
-        while(stop == false)
+        //dataToShow.setProperty("Catagories", "Animals, Bike, Frui", nullptr);
+        
+        ValueTree keywordsChild = dataToShow.getChildWithName("Keywords");
+        
+        if(keywordsChild.isValid())
         {
-            String substring = unprocessedNames.fromLastOccurrenceOf(",", false, true);
+            String keywords;
         
-            if(substring == unprocessedNames)
+            std::for_each(keywordsChild.begin(), keywordsChild.end(), [&keywords](const ValueTree& tree)
             {
-                stop = true;
-            }
-            else
-            {
-                unprocessedNames = unprocessedNames.trimCharactersAtEnd(substring);
-                unprocessedNames = unprocessedNames.trimCharactersAtEnd(",");
+                String curKey = tree.getProperty("Name");
             
-                substring = substring.trimCharactersAtStart(" ");
-            }
+                if(!keywords.isEmpty())
+                {
+                    keywords += ", " + curKey;
+                }
+                else
+                {
+                    keywords = curKey;
+                }
+            });
         
-            catNames.add(substring);
+            descripEditor.setText(keywords);
         }
-    
-        std::for_each(catNames.begin(), catNames.end(), [this](const String& cat)
+        
+        ValueTree catChild = dataToShow.getChildWithName("Catagories");
+        
+        if(catChild.isValid())
         {
-            lookAndHighlightCatagory(cat, catagoryViewer.getRootItem());
-        });
+            //Extracts the category names and highlights them in the viewer
+            
+            std::for_each(catChild.begin(), catChild.end(), [this](const ValueTree& tree)
+            {
+                lookAndHighlightCatagory(tree.getProperty("Name"), catagoryViewer.getRootItem());
+            });
+        }
     }
     
     else

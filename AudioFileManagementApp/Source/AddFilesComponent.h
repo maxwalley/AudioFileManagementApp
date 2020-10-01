@@ -61,6 +61,7 @@ private:
     
     void refreshFilesToShow();
     
+    //Returns false if there is difference true if not
     bool compareTreeNoOrder(const ValueTree& first, const ValueTree& second) const;
     
     std::vector<ValueTree> getChildrenWithName(const ValueTree& tree, const Identifier& name) const;

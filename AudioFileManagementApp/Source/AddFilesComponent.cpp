@@ -38,22 +38,6 @@ AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData(
     
     addAndMakeVisible(addFilesButton);
     addFilesButton.addListener(this);
-    
-    ValueTree testPar1("Test");
-    testPar1.appendChild(ValueTree("Test2"), nullptr);
-    
-    ValueTree testPar2("Test");
-    testPar2.appendChild(ValueTree("Test2"), nullptr);
-    testPar2.appendChild(ValueTree("Test2"), nullptr);
-    
-    ValueTree testPar3("Test");
-    testPar3.appendChild(ValueTree("Test2"), nullptr);
-    testPar3.getChild(0).appendChild(ValueTree("GChild3"), nullptr);
-    
-    ValueTree testPar4("Test");
-    testPar4.appendChild(ValueTree("Test3"), nullptr);
-    
-    DBG(int(compareTreeNoOrder(testPar2, testPar1)));
 }
 
 AddFilesComponent::~AddFilesComponent()
@@ -266,7 +250,6 @@ void AddFilesComponent::refreshFilesToShow()
 {
     Array<ValueTree> selectedTrees = getSelectedItems();
     
-    
     if(selectedTrees.size() == 0)
     {
         paramEditor.setDataToShow(ValueTree());
@@ -281,27 +264,66 @@ void AddFilesComponent::refreshFilesToShow()
     
     //If more than one
     ValueTree combinationOfTrees("File");
-    combinationOfTrees.appendChild(ValueTree("Catagories"), nullptr);
-    combinationOfTrees.appendChild(ValueTree("Keywords"), nullptr);
     
     ValueTree compTree = selectedTrees[0];
     
+    //Whether there are differences in catagories in selected values
+    bool catDif = false;
+    
+    //Whether there are differences in keywords in selected values
+    bool keyDif = false;
+    
     //Iterates through the trees comparing them to the compTree
-    for(int i = 1; i < selectedTrees.size(); i++)
+    for(int i = 1; i < selectedTrees.size() && (!catDif || !keyDif); i++)
     {
+        if(!catDif)
+        {
+            if(compareTreeNoOrder(compTree.getChildWithName("Catagories"), selectedTrees[i].getChildWithName("Catagories")) == 0)
+            {
+                catDif = true;
+            }
+        }
         
+        if(!keyDif)
+        {
+            if(compareTreeNoOrder(compTree.getChildWithName("Keywords"), selectedTrees[i].getChildWithName("Keywords")) == 0)
+            {
+                keyDif = true;
+            }
+        }
     }
     
-    //If no differences have been found it sets this to the comp value
-    if(!combinationOfTrees.hasProperty("Catagories"))
+    ValueTree combCats("Catagories");
+    
+    //If differences have been found it sets this to the comp value
+    if(catDif)
     {
-        combinationOfTrees.setProperty("Catagories", compTree.getProperty("Catagories"), nullptr);
+        ValueTree multipleCats("Catagory");
+        multipleCats.setProperty("Name", "Multiple Values", nullptr);
+        combCats.appendChild(multipleCats, nullptr);
+    }
+    else
+    {
+        combCats = compTree.getChildWithName("Catagories").createCopy();
     }
     
-    if(!combinationOfTrees.hasProperty("Keywords"))
+    combinationOfTrees.appendChild(combCats, nullptr);
+    
+    ValueTree combKeys("Keywords");
+    
+    //If differences have been found it sets this to the comp value
+    if(keyDif)
     {
-        combinationOfTrees.setProperty("Keywords", compTree.getProperty("Keywords"), nullptr);
+        ValueTree multipleKeys("Keywords");
+        multipleKeys.setProperty("Name", "Multiple Values", nullptr);
+        combKeys.appendChild(multipleKeys, nullptr);
     }
+    else
+    {
+        combKeys = compTree.getChildWithName("Keywords").createCopy();
+    }
+    
+    combinationOfTrees.appendChild(combKeys, nullptr);
     
     paramEditor.setDataToShow(combinationOfTrees);
 }
