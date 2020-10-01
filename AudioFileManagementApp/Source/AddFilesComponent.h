@@ -61,6 +61,12 @@ private:
     
     void refreshFilesToShow();
     
+    bool compareTreeNoOrder(const ValueTree& first, const ValueTree& second) const;
+    
+    std::vector<ValueTree> getChildrenWithName(const ValueTree& tree, const Identifier& name) const;
+    
+    int getNumChildrenWithName(const ValueTree& tree, const Identifier& name) const;
+    
     ValueTree newFileData;
     ListBox fileList;
     AddFilesListModel listModel;
