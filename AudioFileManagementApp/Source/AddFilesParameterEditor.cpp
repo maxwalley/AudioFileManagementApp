@@ -235,23 +235,58 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
         
         if(keywordsChild.isValid())
         {
-            String keywords;
+            String nounKeywords;
+            String verbKeywords;
+            String descripKeywords;
         
-            std::for_each(keywordsChild.begin(), keywordsChild.end(), [&keywords](const ValueTree& tree)
+            std::for_each(keywordsChild.begin(), keywordsChild.end(), [&nounKeywords, &verbKeywords, &descripKeywords](const ValueTree& tree)
             {
                 String curKey = tree.getProperty("Name");
-            
-                if(!keywords.isEmpty())
+                
+                var type = tree.getProperty("Type");
+                
+                if(type.isVoid())
                 {
-                    keywords += ", " + curKey;
+                    if(!descripKeywords.isEmpty())
+                    {
+                        descripKeywords += ", " + curKey;
+                    }
+                    else
+                    {
+                        descripKeywords = curKey;
+                    }
                 }
-                else
+                
+                else if (type == "Noun")
                 {
-                    keywords = curKey;
+                    if(!nounKeywords.isEmpty())
+                    {
+                        nounKeywords += ", " + curKey;
+                    }
+                    
+                    else
+                    {
+                        nounKeywords = curKey;
+                    }
+                }
+                
+                else if (type == "Verb")
+                {
+                    if(!verbKeywords.isEmpty())
+                    {
+                        verbKeywords += ", " + curKey;
+                    }
+                    
+                    else
+                    {
+                        verbKeywords = curKey;
+                    }
                 }
             });
         
-            descripEditor.setText(keywords);
+            nounLabel.setText(nounKeywords, dontSendNotification);
+            verbLabel.setText(verbKeywords, dontSendNotification);
+            descripEditor.setText(descripKeywords, dontSendNotification);
         }
         
         ValueTree catChild = dataToShow.getChildWithName("Catagories");
@@ -367,7 +402,7 @@ void AddFilesParameterEditor::labelTextChanged(Label* label)
         
         for(int i = 0; i < nouns.size(); i++)
         {
-            if (i > lastNounIndex || i == -1)
+            if (i > lastNounIndex || lastNounIndex == -1)
             {
                 ValueTree newKeyword("Word");
                 newKeyword.setProperty("Name", nouns[i], nullptr);
@@ -390,6 +425,37 @@ void AddFilesParameterEditor::labelTextChanged(Label* label)
         }
     }
     
+    else if(label == &verbLabel)
+    {
+        StringArray verbs = seperateTextByCommaIntoArray(verbLabel.getText());
+        
+        int lastVerbIndex = getIndexOfLastKeywordType(KeywordType::verb);
+        
+        for(int i = 0; i < verbs.size(); i++)
+        {
+            if (i > lastVerbIndex || lastVerbIndex == -1)
+            {
+                ValueTree newKeyword("Word");
+                newKeyword.setProperty("Name", verbs[i], nullptr);
+                newKeyword.setProperty("Type", "Verb", nullptr);
+                keywordsTree.addChild(newKeyword, i, nullptr);
+            }
+            
+            else
+            {
+                if(keywordsTree.getChild(i).getProperty("Name") != verbs[i])
+                {
+                    keywordsTree.getChild(i).setProperty("Name", verbs[i], nullptr);
+                }
+            }
+        }
+        
+        for(int i = verbs.size(); i < lastVerbIndex; i++)
+        {
+            keywordsTree.removeChild(i, nullptr);
+        }
+    }
+    
     std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
     {
         lis->dataChanged();
@@ -398,6 +464,8 @@ void AddFilesParameterEditor::labelTextChanged(Label* label)
 
 void AddFilesParameterEditor::textEditorTextChanged(TextEditor& editor)
 {
+    //Descrip editor
+    
     std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
     {
         lis->dataChanged();

@@ -25,7 +25,7 @@ int FileArraySorter::compareElements(File& first, File& second) const
 }
 
 
-AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData), filesDragged(false), addFilesButton("Add Files")
+AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : fxData(currentData.getChildWithName("FX")), newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData), filesDragged(false), addFilesButton("Add Files")
 {
     setSize(600, 400);
     
@@ -123,13 +123,18 @@ bool AddFilesComponent::processAndAddFiles(const Array<File>& filesToAdd)
 
 void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
 {
-    std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
+    int maxFXIDNum = fxData.getNumChildren();
+    
+    std::for_each(filesToAdd.begin(), filesToAdd.end(), [this, &maxFXIDNum](const File& file)
     {
         ValueTree fileTree("File");
         fileTree.setProperty("Path", file.getFullPathName(), nullptr);
+        fileTree.setProperty("Number", maxFXIDNum, nullptr);
         fileTree.appendChild(ValueTree("Catagories"), nullptr);
         fileTree.appendChild(ValueTree("Keywords"), nullptr);
         newFileData.addChild(fileTree, -1, nullptr);
+        
+        maxFXIDNum++;
     });
     
     fileList.updateContent();
@@ -141,6 +146,8 @@ void AddFilesComponent::buttonClicked(Button* button)
     {
         //If all are ready - add them to main data stream and close this window.
         //Otherwise highlight the ones which are not
+        
+        //Also all the categories that have been assigned need to have specific ID number attached to them
     }
     
     ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());

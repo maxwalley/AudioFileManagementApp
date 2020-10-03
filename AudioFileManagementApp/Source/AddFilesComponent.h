@@ -68,6 +68,7 @@ private:
     
     int getNumChildrenWithName(const ValueTree& tree, const Identifier& name) const;
     
+    ValueTree fxData;
     ValueTree newFileData;
     ListBox fileList;
     AddFilesListModel listModel;
