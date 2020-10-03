@@ -229,8 +229,6 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
     //If something has been sent
     if(dataToShow.isValid())
     {
-        //This all needs to be changed to deal with new way of dealing with catagories and keywords
-        
         //dataToShow.setProperty("Catagories", "Animals, Bike, Frui", nullptr);
         
         ValueTree keywordsChild = dataToShow.getChildWithName("Keywords");
@@ -359,6 +357,39 @@ bool AddFilesParameterEditor::keyPressed(const KeyPress& key)
 
 void AddFilesParameterEditor::labelTextChanged(Label* label)
 {
+    ValueTree keywordsTree = dataToShow.getChildWithName("Keywords");
+    
+    if(label == &nounLabel)
+    {
+        StringArray nouns = seperateTextByCommaIntoArray(nounLabel.getText());
+        
+        int lastNounIndex = getIndexOfLastKeywordType(KeywordType::noun);
+        
+        for(int i = 0; i < nouns.size(); i++)
+        {
+            if (i > lastNounIndex || i == -1)
+            {
+                ValueTree newKeyword("Word");
+                newKeyword.setProperty("Name", nouns[i], nullptr);
+                newKeyword.setProperty("Type", "Noun", nullptr);
+                keywordsTree.addChild(newKeyword, i, nullptr);
+            }
+            
+            else
+            {
+                if(keywordsTree.getChild(i).getProperty("Name") != nouns[i])
+                {
+                    keywordsTree.getChild(i).setProperty("Name", nouns[i], nullptr);
+                }
+            }
+        }
+        
+        for(int i = nouns.size(); i < lastNounIndex; i++)
+        {
+            keywordsTree.removeChild(i, nullptr);
+        }
+    }
+    
     std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
     {
         lis->dataChanged();
@@ -426,4 +457,132 @@ void AddFilesParameterEditor::lookAndHighlightCatagory(const String& catagory, T
             lookAndHighlightCatagory(catagory, tree);
         }
     }
+}
+
+StringArray AddFilesParameterEditor::seperateTextByCommaIntoArray(const String& textToSeperate) const
+{
+    int commaIndex = textToSeperate.indexOfIgnoreCase(",");
+    int lastComma = 0;
+    
+    StringArray strings;
+    
+    while(commaIndex != -1)
+    {
+        String subString = textToSeperate.substring(lastComma, commaIndex);
+        
+        if(lastComma != 0)
+        {
+            subString = subString.trimCharactersAtStart(", ");
+        }
+        
+        strings.add(subString);
+        
+        lastComma = commaIndex;
+        commaIndex = textToSeperate.indexOfIgnoreCase(++commaIndex, ",");
+    }
+    
+    return strings;
+}
+
+void AddFilesParameterEditor::seperateTextByCommaIntoTreeChildren(const String& textToSeperate, ValueTree treeToAddTo, const Identifier& newChildrenTypes) const
+{
+    int commaIndex = textToSeperate.indexOfIgnoreCase(",");
+    int lastComma = 0;
+    
+    while(commaIndex != -1)
+    {
+        String subString = textToSeperate.substring(lastComma, commaIndex);
+        
+        if(lastComma != 0)
+        {
+            subString = subString.trimCharactersAtStart(", ");
+        }
+        
+        ValueTree newChild(newChildrenTypes);
+        newChild.setProperty("Name", subString, nullptr);
+        treeToAddTo.addChild(newChild, -1, nullptr);
+        
+        lastComma = commaIndex;
+        commaIndex = textToSeperate.indexOfIgnoreCase(++commaIndex, ",");
+    }
+}
+
+int AddFilesParameterEditor::getIndexOfFirstKeywordType (KeywordType typeToLookFor) const
+{
+    ValueTree keywordsTree = dataToShow.getChildWithName("Keywords");
+    
+    if (typeToLookFor == KeywordType::noun)
+    {
+        if (keywordsTree.getChildWithProperty("Type", "Noun").isValid())
+        {
+            return 0;
+        }
+        return -1;
+    }
+    
+    else if (typeToLookFor == KeywordType::verb)
+    {
+        //This could use getChildWithProperty() then indexOf but that would require two searches of the keywords tree
+        
+        for (int i = 0; i < keywordsTree.getNumChildren(); i++)
+        {
+            if(keywordsTree.getChild(i).getProperty("Type") == "Verb")
+            {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+    
+    //Unspecified
+    for (int i = 0; i < keywordsTree.getNumChildren(); i++)
+    {
+        if(!keywordsTree.getChild(i).hasProperty("Type"))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+//-1 if it doesnt find one
+int AddFilesParameterEditor::getIndexOfLastKeywordType(KeywordType typeToLookFor) const
+{
+    int startIndex = getIndexOfFirstKeywordType(typeToLookFor);
+    
+    if(startIndex == -1)
+    {
+        return -1;
+    }
+    
+    ValueTree keywordTree = dataToShow.getChildWithName("Keywords");
+    
+    if(typeToLookFor == KeywordType::unspecified)
+    {
+        return keywordTree.getNumChildren();
+    }
+    
+    String strToLookFor;
+    switch (typeToLookFor)
+    {
+        case KeywordType::noun:
+            strToLookFor = "Noun";
+            break;
+            
+        case KeywordType::verb:
+            strToLookFor = "Verb";
+    }
+    
+    for(int i = startIndex; i < keywordTree.getNumChildren(); i++)
+    {
+        ValueTree treeBeingTested = keywordTree.getChild(i + 1);
+        
+        if(treeBeingTested.getProperty("Type") != strToLookFor || !treeBeingTested.isValid())
+        {
+            return i;
+        }
+    }
+    
+    return -1;
 }

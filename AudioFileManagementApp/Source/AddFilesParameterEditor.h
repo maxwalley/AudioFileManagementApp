@@ -61,6 +61,13 @@ class AddFilesParameterEditor  : public Component,
                                  public TextEditor::Listener
 {
 public:
+    enum class KeywordType
+    {
+        noun,
+        verb,
+        unspecified
+    };
+    
     AddFilesParameterEditor(juce::ValueTree currentData);
     ~AddFilesParameterEditor() override;
 
@@ -96,6 +103,16 @@ private:
     void deleteSelectedItems();
     
     void lookAndHighlightCatagory(const String& catagory, TreeViewItem* treeToSearch);
+    
+    StringArray seperateTextByCommaIntoArray(const String& textToSeperate) const;
+    
+    void seperateTextByCommaIntoTreeChildren(const String& textToSeperate, ValueTree treeToAddTo, const Identifier& newChildrenTypes) const;
+    
+    //-1 if it doesnt find one
+    int getIndexOfFirstKeywordType(KeywordType typeToLookFor) const;
+    
+    //-1 if it doesnt find one
+    int getIndexOfLastKeywordType(KeywordType typeToLookFor) const;
     
     Label titleLabel;
     
