@@ -92,13 +92,15 @@ public:
 
 private:
     
+    void mouseDown(const MouseEvent& event) override;
+    
     void buttonClicked(Button* button) override;
     
     bool keyPressed(const KeyPress& key) override;
     
     void labelTextChanged(Label* label) override;
     
-    void textEditorTextChanged(TextEditor& editor) override;
+    void textEditorFocusLost(TextEditor& editor) override;
     
     void deleteSelectedItems();
     
@@ -133,6 +135,8 @@ private:
     ValueTree dataToShow;
     
     std::vector<Listener*> listeners;
+    
+    String lastDescripEditorText;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesParameterEditor)
 };
