@@ -229,8 +229,6 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
     //If something has been sent
     if(dataToShow.isValid())
     {
-        //dataToShow.setProperty("Catagories", "Animals, Bike, Frui", nullptr);
-        
         ValueTree keywordsChild = dataToShow.getChildWithName("Keywords");
         
         if(keywordsChild.isValid())
@@ -311,20 +309,6 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
     }
 }
 
-bool AddFilesParameterEditor::isDataReady() const
-{
-    if(!newVersionToggle.getToggleState())
-    {
-        //This could be extended to check if the catagory viewer has any selected items
-        if(nounLabel.getText().isEmpty() || verbLabel.getText().isEmpty() || descripEditor.getText().isEmpty() )
-        {
-            return false;
-        }
-        
-        return true;
-    }
-}
-
 void AddFilesParameterEditor::addListener(Listener* newListener)
 {
     listeners.push_back(newListener);
@@ -333,6 +317,28 @@ void AddFilesParameterEditor::addListener(Listener* newListener)
 void AddFilesParameterEditor::removeListener(Listener* listenerToRemove)
 {
     std::remove(listeners.begin(), listeners.end(), listenerToRemove);
+}
+
+StringArray AddFilesParameterEditor::getTextFromComponent(KeywordType typeOfDataToFetch) const
+{
+    StringArray keywordsToReturn;
+    
+    switch (typeOfDataToFetch)
+    {
+        case KeywordType::noun:
+            keywordsToReturn = seperateTextByCommaIntoArray(nounLabel.getText());
+            break;
+            
+        case KeywordType::verb:
+            keywordsToReturn = seperateTextByCommaIntoArray(verbLabel.getText());
+            break;
+            
+        case KeywordType::other:
+            keywordsToReturn = seperateTextByCommaIntoArray(descripEditor.getText());
+            break;
+    }
+    
+    return keywordsToReturn;
 }
 
 void AddFilesParameterEditor::mouseDown(const MouseEvent& event)
@@ -402,10 +408,23 @@ bool AddFilesParameterEditor::keyPressed(const KeyPress& key)
 
 void AddFilesParameterEditor::labelTextChanged(Label* label)
 {
-    ValueTree keywordsTree = dataToShow.getChildWithName("Keywords");
+    //ValueTree keywordsTree = dataToShow.getChildWithName("Keywords");
+    
+    KeywordType typeThatHasBeenChanged;
     
     if(label == &nounLabel)
     {
+        typeThatHasBeenChanged = KeywordType::noun;
+    }
+    else if(label == &verbLabel)
+    {
+        typeThatHasBeenChanged = KeywordType::verb;
+    }
+    
+    /*if(label == &nounLabel)
+    {
+        typeThatHasBeenChanged = KeywordType::noun;
+        
         StringArray nouns = seperateTextByCommaIntoArray(nounLabel.getText());
         
         int lastNounIndex = getIndexOfLastKeywordType(KeywordType::noun);
@@ -437,6 +456,8 @@ void AddFilesParameterEditor::labelTextChanged(Label* label)
     
     else if(label == &verbLabel)
     {
+        typeThatHasBeenChanged = KeywordType::verb;
+        
         StringArray verbs = seperateTextByCommaIntoArray(verbLabel.getText());
         
         int lastVerbIndex = getIndexOfLastKeywordType(KeywordType::verb);
@@ -467,11 +488,11 @@ void AddFilesParameterEditor::labelTextChanged(Label* label)
         {
             keywordsTree.removeChild(i, nullptr);
         }
-    }
+    }*/
     
-    std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
+    std::for_each(listeners.begin(), listeners.end(), [&typeThatHasBeenChanged](Listener* lis)
     {
-        lis->dataChanged();
+        lis->dataChanged(typeThatHasBeenChanged);
     });
 }
 
@@ -480,12 +501,13 @@ void AddFilesParameterEditor::textEditorFocusLost(TextEditor& editor)
     //If the text has changed
     if(editor.getText() != lastDescripEditorText)
     {
+        /*
         ValueTree keywordsTree = dataToShow.getChildWithName("Keywords");
         
         lastDescripEditorText = editor.getText();
         
         StringArray words = seperateTextByCommaIntoArray(editor.getText());
-        int firstKeywordIndex = getIndexOfFirstKeywordType(KeywordType::unspecified);
+        int firstKeywordIndex = getIndexOfFirstKeywordType(KeywordType::other);
         
         for(int i = 0; i < words.size(); i++)
         {
@@ -510,13 +532,13 @@ void AddFilesParameterEditor::textEditorFocusLost(TextEditor& editor)
         for(int i = 0 + firstKeywordIndex; i < keywordsTree.getNumChildren(); i++)
         {
             keywordsTree.removeChild(i, nullptr);
-        }
+        }*/
+        
+        std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
+        {
+            lis->dataChanged(KeywordType::other);
+        });
     }
-    
-    std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
-    {
-        lis->dataChanged();
-    });
 }
 
 void AddFilesParameterEditor::deleteSelectedItems()
@@ -673,7 +695,7 @@ int AddFilesParameterEditor::getIndexOfLastKeywordType(KeywordType typeToLookFor
     
     ValueTree keywordTree = dataToShow.getChildWithName("Keywords");
     
-    if(typeToLookFor == KeywordType::unspecified)
+    if(typeToLookFor == KeywordType::other)
     {
         return keywordTree.getNumChildren();
     }

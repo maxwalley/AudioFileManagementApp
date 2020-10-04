@@ -65,7 +65,7 @@ public:
     {
         noun,
         verb,
-        unspecified
+        other
     };
     
     AddFilesParameterEditor(juce::ValueTree currentData);
@@ -76,19 +76,19 @@ public:
     
     void setDataToShow(ValueTree newData);
     
-    bool isDataReady() const;
-    
     class Listener
     {
     public:
         Listener(){};
         virtual ~Listener(){};
         
-        virtual void dataChanged()=0;
+        virtual void dataChanged(KeywordType specificDataFieldChanged)=0;
     };
     
     void addListener(Listener* newListener);
     void removeListener(Listener* listenerToRemove);
+    
+    StringArray getTextFromComponent(KeywordType typeOfDataToFetch) const;
 
 private:
     

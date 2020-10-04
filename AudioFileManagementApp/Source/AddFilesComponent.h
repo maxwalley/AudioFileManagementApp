@@ -55,7 +55,7 @@ private:
     
     void fileDragMove(const StringArray& files, int x, int y) override;
     
-    void dataChanged() override;
+    void dataChanged(AddFilesParameterEditor::KeywordType specificDataFieldChanged) override;
     
     Array<ValueTree> getSelectedItems();
     

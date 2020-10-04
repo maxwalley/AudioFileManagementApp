@@ -92,6 +92,8 @@ void ToggleItem::resized()
     textLabel.setBounds(getHeight(), 0, getWidth() / 6 * 5 - (getHeight() * 2), getHeight());
     selectButton.setBounds(getWidth() - getHeight(), 0, getHeight(), getHeight());
     
+    notCompletedSymbol.setVisible(!completed);
+    
     if(!completed)
     {
         notCompletedSymbol.setBounds(2, 2, getHeight() - 4, getHeight() - 4);
@@ -115,7 +117,7 @@ bool ToggleItem::getButtonState() const
 
 void ToggleItem::setButtonState(bool newState, NotificationType sendNotification)
 {
-    selectButton.setToggleState(newState, sendNotification);
+    selectButton.setToggleState(newState, dontSendNotification);
 }
 
 bool ToggleItem::getCompleted() const
@@ -126,7 +128,7 @@ bool ToggleItem::getCompleted() const
 void ToggleItem::setCompleted(bool newCompleted)
 {
     completed = newCompleted;
-    repaint();
+    resized();
 }
 
 AddFilesListModel::AddFilesListModel(ValueTree dataModel, Button::Listener* itemButtonListener) : toggleButtonLis(itemButtonListener), dataToDisplay(dataModel)
@@ -171,17 +173,22 @@ Component* AddFilesListModel::refreshComponentForRow (int rowNum, bool isRowSele
     
     itemToReturn->setRowNum(rowNum);
     
+    ValueTree currentTree = dataToDisplay.getChild(rowNum);
+    
     if(rowNum < getNumRows() - 1)
     {
-        String fileName = dataToDisplay.getChild(rowNum).getProperty("Path");
+        String fileName = currentTree.getProperty("Path");
         
         fileName = fileName.fromLastOccurrenceOf("/", false, false);
         itemToReturn->setItemText(fileName);
+        itemToReturn->setCompleted(currentTree.getChildWithName("ListBoxData").getProperty("Completed"));
+        itemToReturn->setButtonState(currentTree.getChildWithName("ListBoxData").getProperty("Selected"), sendNotification);
     }
     //Last row
     else
     {
         itemToReturn->setItemText("All Items");
+        itemToReturn->setCompleted(true);
     }
     
     return itemToReturn;

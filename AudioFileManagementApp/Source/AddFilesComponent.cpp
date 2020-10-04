@@ -132,6 +132,13 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
         fileTree.setProperty("Number", maxFXIDNum, nullptr);
         fileTree.appendChild(ValueTree("Catagories"), nullptr);
         fileTree.appendChild(ValueTree("Keywords"), nullptr);
+        
+        ValueTree listBoxDisplayData("ListBoxData");
+        listBoxDisplayData.setProperty("Selected", false, nullptr);
+        listBoxDisplayData.setProperty("Completed", false, nullptr);
+        
+        fileTree.appendChild(listBoxDisplayData, nullptr);
+        
         newFileData.addChild(fileTree, -1, nullptr);
         
         maxFXIDNum++;
@@ -148,24 +155,26 @@ void AddFilesComponent::buttonClicked(Button* button)
         //Otherwise highlight the ones which are not
         
         //Also all the categories that have been assigned need to have specific ID number attached to them
+        //Also needs to remove the listbox display child from each
     }
     
     ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());
     
-    //Last row
-    if(rowComponent->getRowNum() + 1 == listModel.getNumRows())
+    if(rowComponent->getRowNum() < newFileData.getNumChildren())
     {
-        for(int i = 0; i < listModel.getNumRows(); i++)
-        {
-            ToggleItem* componentToChange = dynamic_cast<ToggleItem*>(fileList.getComponentForRowNumber(i));
-            
-            if(componentToChange != nullptr)
-            {
-                componentToChange->setButtonState(button->getToggleState(), dontSendNotification);
-            }
-        }
+        newFileData.getChild(rowComponent->getRowNum()).getChildWithName("ListBoxData").setProperty("Selected", button->getToggleState(), nullptr);
     }
     
+    //Last row
+    else
+    {
+        std::for_each(newFileData.begin(), newFileData.end(), [button](const ValueTree& fxTree)
+        {
+            fxTree.getChildWithName("ListBoxData").setProperty("Selected", button->getToggleState(), nullptr);
+        });
+    }
+    
+    fileList.updateContent();
     refreshFilesToShow();
 }
 
@@ -226,25 +235,36 @@ void AddFilesComponent::fileDragMove(const StringArray& files, int x, int y)
     }
 }
 
-void AddFilesComponent::dataChanged()
+void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specificDataFieldChanged)
 {
-    //checks if data is ready and if so changes the ready symbol on the selected items
+    StringArray changedWords = paramEditor.getTextFromComponent(specificDataFieldChanged);
+    
+    //checks if data is ready and changes the ready symbol on the selected items
+    for(int i = 0; i < newFileData.getNumChildren(); i++)
+    {
+        ValueTree listBoxData = newFileData.getChild(i).getChildWithName("ListBoxData");
+        
+        if(listBoxData.getProperty("Selected"))
+        {
+            std::for_each(newFileData.getChild(i).getChildWithName("Keywords").begin(), newFileData.getChild(i).getChildWithName("Keywords").begin(), [](const ValueTree& tree)
+            {
+                DBG(tree.getProperty("Name").toString());
+            });
+            
+            //Work out a new way to check if the data is ready
+        }
+    }
+    
+    fileList.updateContent();
 }
 
 Array<ValueTree> AddFilesComponent::getSelectedItems()
 {
     Array<ValueTree> selectedTrees;
     
-    for(int i = 0; i < listModel.getNumRows() - 1; i++)
+    for(int i = 0; i < newFileData.getNumChildren(); i++)
     {
-        ToggleItem* currentItem = dynamic_cast<ToggleItem*>(fileList.getComponentForRowNumber(i));
-        
-        if(currentItem == nullptr)
-        {
-            continue;
-        }
-        
-        if(currentItem->getButtonState())
+        if(newFileData.getChild(i).getChildWithName("ListBoxData").getProperty("Selected"))
         {
             selectedTrees.add(newFileData.getChild(i));
         }
