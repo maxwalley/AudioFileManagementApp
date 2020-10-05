@@ -16,6 +16,8 @@ ValueTreeItem::ValueTreeItem(ValueTree treeToDisplay) : tree(treeToDisplay)
     refreshChildren();
     
     tree.addListener(this);
+    
+    tree.setProperty("AddComponentTreeViewSelected", false, nullptr);
 }
 
 ValueTreeItem::~ValueTreeItem()
@@ -60,7 +62,7 @@ void ValueTreeItem::paintItem(Graphics& g, int width, int height)
 
 void ValueTreeItem::itemSelectionChanged(bool isSelected)
 {
-    repaintItem();
+    tree.setProperty("AddComponentTreeViewSelected", isSelected, nullptr);
 }
 
 void ValueTreeItem::mouseDown(const MouseEvent& event)
@@ -128,7 +130,7 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     newVersionLabel.setText("Files are new versions of exisiting files", dontSendNotification);
     newVersionLabel.attachToComponent(&newVersionToggle, true);
     
-    catagoryViewer.setRootItem(new ValueTreeItem(dataToAddTo.getChildWithName("Catagories")));
+    catagoryViewer.setRootItem(new ValueTreeItem(dataToAddTo));
     catagoryViewer.setRootItemVisible(false);
     addAndMakeVisible(catagoryViewer);
     
@@ -321,24 +323,20 @@ void AddFilesParameterEditor::removeListener(Listener* listenerToRemove)
 
 StringArray AddFilesParameterEditor::getTextFromComponent(KeywordType typeOfDataToFetch) const
 {
-    StringArray keywordsToReturn;
-    
     switch (typeOfDataToFetch)
     {
         case KeywordType::noun:
-            keywordsToReturn = seperateTextByCommaIntoArray(nounLabel.getText());
+            return seperateTextByCommaIntoArray(nounLabel.getText());
             break;
             
         case KeywordType::verb:
-            keywordsToReturn = seperateTextByCommaIntoArray(verbLabel.getText());
+            return seperateTextByCommaIntoArray(verbLabel.getText());
             break;
             
         case KeywordType::other:
-            keywordsToReturn = seperateTextByCommaIntoArray(descripEditor.getText());
+            return seperateTextByCommaIntoArray(descripEditor.getText());
             break;
     }
-    
-    return keywordsToReturn;
 }
 
 void AddFilesParameterEditor::mouseDown(const MouseEvent& event)
@@ -408,8 +406,6 @@ bool AddFilesParameterEditor::keyPressed(const KeyPress& key)
 
 void AddFilesParameterEditor::labelTextChanged(Label* label)
 {
-    //ValueTree keywordsTree = dataToShow.getChildWithName("Keywords");
-    
     KeywordType typeThatHasBeenChanged;
     
     if(label == &nounLabel)
@@ -420,75 +416,6 @@ void AddFilesParameterEditor::labelTextChanged(Label* label)
     {
         typeThatHasBeenChanged = KeywordType::verb;
     }
-    
-    /*if(label == &nounLabel)
-    {
-        typeThatHasBeenChanged = KeywordType::noun;
-        
-        StringArray nouns = seperateTextByCommaIntoArray(nounLabel.getText());
-        
-        int lastNounIndex = getIndexOfLastKeywordType(KeywordType::noun);
-        
-        for(int i = 0; i < nouns.size(); i++)
-        {
-            if (i > lastNounIndex || lastNounIndex == -1)
-            {
-                ValueTree newKeyword("Word");
-                newKeyword.setProperty("Name", nouns[i], nullptr);
-                newKeyword.setProperty("Type", "Noun", nullptr);
-                keywordsTree.addChild(newKeyword, i, nullptr);
-            }
-            
-            else
-            {
-                if(keywordsTree.getChild(i).getProperty("Name") != nouns[i])
-                {
-                    keywordsTree.getChild(i).setProperty("Name", nouns[i], nullptr);
-                }
-            }
-        }
-        
-        for(int i = nouns.size(); i < lastNounIndex; i++)
-        {
-            keywordsTree.removeChild(i, nullptr);
-        }
-    }
-    
-    else if(label == &verbLabel)
-    {
-        typeThatHasBeenChanged = KeywordType::verb;
-        
-        StringArray verbs = seperateTextByCommaIntoArray(verbLabel.getText());
-        
-        int lastVerbIndex = getIndexOfLastKeywordType(KeywordType::verb);
-        int firstVerbIndex = getIndexOfFirstKeywordType(KeywordType::verb);
-        
-        for(int i = 0; i < verbs.size(); i++)
-        {
-            int j = i + firstVerbIndex;
-            
-            if (j > lastVerbIndex || lastVerbIndex == -1)
-            {
-                ValueTree newKeyword("Word");
-                newKeyword.setProperty("Name", verbs[i], nullptr);
-                newKeyword.setProperty("Type", "Verb", nullptr);
-                keywordsTree.addChild(newKeyword, j, nullptr);
-            }
-            
-            else
-            {
-                if(keywordsTree.getChild(j).getProperty("Name") != verbs[i])
-                {
-                    keywordsTree.getChild(j).setProperty("Name", verbs[i], nullptr);
-                }
-            }
-        }
-        
-        for(int i = verbs.size() + firstVerbIndex; i < lastVerbIndex; i++)
-        {
-            keywordsTree.removeChild(i, nullptr);
-        }
-    }*/
     
     std::for_each(listeners.begin(), listeners.end(), [&typeThatHasBeenChanged](Listener* lis)
     {
@@ -501,39 +428,6 @@ void AddFilesParameterEditor::textEditorFocusLost(TextEditor& editor)
     //If the text has changed
     if(editor.getText() != lastDescripEditorText)
     {
-        /*
-        ValueTree keywordsTree = dataToShow.getChildWithName("Keywords");
-        
-        lastDescripEditorText = editor.getText();
-        
-        StringArray words = seperateTextByCommaIntoArray(editor.getText());
-        int firstKeywordIndex = getIndexOfFirstKeywordType(KeywordType::other);
-        
-        for(int i = 0; i < words.size(); i++)
-        {
-            int indexToLook = i + firstKeywordIndex;
-            
-            if(indexToLook > keywordsTree.getNumChildren() || firstKeywordIndex == -1)
-            {
-                ValueTree newKeyword("Word");
-                newKeyword.setProperty("Name", words[i], nullptr);
-                keywordsTree.appendChild(newKeyword, nullptr);
-            }
-            
-            else
-            {
-                if(keywordsTree.getChild(indexToLook).getProperty("Name") != words[i])
-                {
-                    keywordsTree.getChild(i).setProperty("Name", words[i], nullptr);
-                }
-            }
-        }
-        
-        for(int i = 0 + firstKeywordIndex; i < keywordsTree.getNumChildren(); i++)
-        {
-            keywordsTree.removeChild(i, nullptr);
-        }*/
-        
         std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
         {
             lis->dataChanged(KeywordType::other);

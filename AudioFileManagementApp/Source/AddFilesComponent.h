@@ -28,16 +28,10 @@ public:
 class AddFilesComponent  : public Component,
                            public Button::Listener,
                            public FileDragAndDropTarget,
-                           public AddFilesParameterEditor::Listener
+                           public AddFilesParameterEditor::Listener,
+                           public ValueTree::Listener
 {
 public:
-    
-    enum class KeywordType
-    {
-        noun,
-        verb,
-        other
-    };
     
     AddFilesComponent(ValueTree currentData);
     ~AddFilesComponent() override;
@@ -65,6 +59,8 @@ private:
     
     void dataChanged(AddFilesParameterEditor::KeywordType specificDataFieldChanged) override;
     
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
+    
     Array<ValueTree> getSelectedItems();
     
     void refreshFilesToShow();
@@ -77,12 +73,15 @@ private:
     int getNumChildrenWithName(const ValueTree& tree, const Identifier& name) const;
     
     //-1 if it cant find one, treeToSearch should be a keyword tree
-    int getFirstIndexOfKeywordType(const ValueTree& treeToSearch, KeywordType wordTypeToLookFor) const;
+    int getFirstIndexOfKeywordType(const ValueTree& treeToSearch, AddFilesParameterEditor::KeywordType wordTypeToLookFor) const;
     
     //-1 if it cant find one, treeToSearch should be a keyword tree
-    int getLastIndexOfKeywordType(const ValueTree& treeToSearch, KeywordType wordTypeToLookFor) const;
+    int getLastIndexOfKeywordType(const ValueTree& treeToSearch, AddFilesParameterEditor::KeywordType wordTypeToLookFor) const;
     
-    ValueTree fxData;
+    //treeToCheck should have both a Keywords child and a ListBoxData Child
+    void checkAndUpdateIfFXIsReady(ValueTree treeToCheck);
+    
+    ValueTree dataToAddTo;
     ValueTree newFileData;
     ListBox fileList;
     AddFilesListModel listModel;

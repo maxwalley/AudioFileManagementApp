@@ -50,6 +50,7 @@ public:
     
     void refreshChildren();
     
+    
 private:
     ValueTree tree;
 };
@@ -65,7 +66,8 @@ public:
     {
         noun,
         verb,
-        other
+        other,
+        category
     };
     
     AddFilesParameterEditor(juce::ValueTree currentData);
@@ -113,6 +115,8 @@ private:
     ToggleButton newVersionToggle;
     Label newVersionLabel;
     
+    //This will set the property "AddComponentTreeViewSelected" to whether its selected to the tree being displayed
+    //These changes can be recorded and acted upon using a ValueTree::Listener for the data being displayed
     TreeView catagoryViewer;
     ValueTree dataToAddTo;
     
