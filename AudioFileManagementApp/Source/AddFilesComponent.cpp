@@ -261,37 +261,43 @@ void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specifi
                     {
                         keywordsTree.getChild(i).setProperty("Name", changedWords[i], nullptr);
                     }
-                    continue;
                 }
                 
-                //This if statement left for readability - not needed due to continue above
-                //if(i > indexSizeForDataType)
-                
-                ValueTree newWord("Word");
-                if(KeywordType(specificDataFieldChanged) == KeywordType::noun)
+                else if(i > indexSizeForDataType)
                 {
-                    newWord.setProperty("Type", "Noun", nullptr);
-                }
-                else if(KeywordType(specificDataFieldChanged) == KeywordType::verb)
-                {
-                    newWord.setProperty("Type", "Verb", nullptr);
-                }
+                    ValueTree newWord("Word");
+                    if(KeywordType(specificDataFieldChanged) == KeywordType::noun)
+                    {
+                        newWord.setProperty("Type", "Noun", nullptr);
+                    }
+                    else if(KeywordType(specificDataFieldChanged) == KeywordType::verb)
+                    {
+                        newWord.setProperty("Type", "Verb", nullptr);
+                    }
                     
-                newWord.setProperty("Name", changedWords[i], nullptr);
+                    newWord.setProperty("Name", changedWords[i], nullptr);
                 
-                keywordsTree.addChild(newWord, ++lastIndex, nullptr);
-                continue;
-            }
+                    keywordsTree.addChild(newWord, ++lastIndex, nullptr);
+                }
             
-            if(changedWords.size() <= lastIndex - firstIndex)
-            {
-                for(int i = changedWords.size() + firstIndex; i <= lastIndex; i++)
+                if(changedWords.size() <= lastIndex - firstIndex)
                 {
-                    keywordsTree.removeChild(i, nullptr);
+                    for(int i = changedWords.size() + firstIndex; i <= lastIndex; i++)
+                    {
+                        keywordsTree.removeChild(i, nullptr);
+                    }
+                }
+            
+                //Checks and sets whether the data is ready
+                if(keywordsTree.getNumChildren() == 0 || newFileData.getChild(i).getChildWithName("Catagories").getNumChildren() == 0)
+                {
+                    listBoxData.setProperty("Completed", false, nullptr);
+                }
+                else
+                {
+                    listBoxData.setProperty("Completed", true, nullptr);
                 }
             }
-            
-            //Work out a new way to check if the data is ready
         }
     }
     
