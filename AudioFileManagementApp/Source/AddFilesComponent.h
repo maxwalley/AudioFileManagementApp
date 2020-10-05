@@ -31,6 +31,14 @@ class AddFilesComponent  : public Component,
                            public AddFilesParameterEditor::Listener
 {
 public:
+    
+    enum class KeywordType
+    {
+        noun,
+        verb,
+        other
+    };
+    
     AddFilesComponent(ValueTree currentData);
     ~AddFilesComponent() override;
 
@@ -67,6 +75,12 @@ private:
     std::vector<ValueTree> getChildrenWithName(const ValueTree& tree, const Identifier& name) const;
     
     int getNumChildrenWithName(const ValueTree& tree, const Identifier& name) const;
+    
+    //-1 if it cant find one, treeToSearch should be a keyword tree
+    int getFirstIndexOfKeywordType(const ValueTree& treeToSearch, KeywordType wordTypeToLookFor) const;
+    
+    //-1 if it cant find one, treeToSearch should be a keyword tree
+    int getLastIndexOfKeywordType(const ValueTree& treeToSearch, KeywordType wordTypeToLookFor) const;
     
     ValueTree fxData;
     ValueTree newFileData;

@@ -108,14 +108,6 @@ private:
     
     StringArray seperateTextByCommaIntoArray(const String& textToSeperate) const;
     
-    void seperateTextByCommaIntoTreeChildren(const String& textToSeperate, ValueTree treeToAddTo, const Identifier& newChildrenTypes) const;
-    
-    //-1 if it doesnt find one
-    int getIndexOfFirstKeywordType(KeywordType typeToLookFor) const;
-    
-    //-1 if it doesnt find one
-    int getIndexOfLastKeywordType(KeywordType typeToLookFor) const;
-    
     Label titleLabel;
     
     ToggleButton newVersionToggle;

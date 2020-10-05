@@ -243,13 +243,53 @@ void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specifi
     for(int i = 0; i < newFileData.getNumChildren(); i++)
     {
         ValueTree listBoxData = newFileData.getChild(i).getChildWithName("ListBoxData");
-        
+        ValueTree keywordsTree = newFileData.getChild(i).getChildWithName("Keywords");
+
         if(listBoxData.getProperty("Selected"))
         {
-            std::for_each(newFileData.getChild(i).getChildWithName("Keywords").begin(), newFileData.getChild(i).getChildWithName("Keywords").begin(), [](const ValueTree& tree)
+            int firstIndex = getFirstIndexOfKeywordType(keywordsTree, KeywordType(specificDataFieldChanged));
+            int lastIndex = getLastIndexOfKeywordType(keywordsTree, KeywordType(specificDataFieldChanged));
+            
+            for(int i = 0; i < changedWords.size(); i++)
             {
-                DBG(tree.getProperty("Name").toString());
-            });
+                int indexSizeForDataType = lastIndex - firstIndex;
+                
+                if(i <= indexSizeForDataType)
+                {
+                    //If one of this type already is there
+                    if(keywordsTree.getChild(i).getProperty("Name") != changedWords[i])
+                    {
+                        keywordsTree.getChild(i).setProperty("Name", changedWords[i], nullptr);
+                    }
+                    continue;
+                }
+                
+                //This if statement left for readability - not needed due to continue above
+                //if(i > indexSizeForDataType)
+                
+                ValueTree newWord("Word");
+                if(KeywordType(specificDataFieldChanged) == KeywordType::noun)
+                {
+                    newWord.setProperty("Type", "Noun", nullptr);
+                }
+                else if(KeywordType(specificDataFieldChanged) == KeywordType::verb)
+                {
+                    newWord.setProperty("Type", "Verb", nullptr);
+                }
+                    
+                newWord.setProperty("Name", changedWords[i], nullptr);
+                
+                keywordsTree.addChild(newWord, ++lastIndex, nullptr);
+                continue;
+            }
+            
+            if(changedWords.size() <= lastIndex - firstIndex)
+            {
+                for(int i = changedWords.size() + firstIndex; i <= lastIndex; i++)
+                {
+                    keywordsTree.removeChild(i, nullptr);
+                }
+            }
             
             //Work out a new way to check if the data is ready
         }
@@ -450,4 +490,84 @@ int AddFilesComponent::getNumChildrenWithName(const ValueTree& tree, const Ident
     });
     
     return count;
+}
+
+int AddFilesComponent::getFirstIndexOfKeywordType(const ValueTree& treeToSearch, KeywordType wordTypeToLookFor) const
+{
+    if(wordTypeToLookFor == KeywordType::noun)
+    {
+        if(treeToSearch.getChild(0).getProperty("Type") != "Noun")
+        {
+            return -1;
+        }
+        
+        return 0;
+    }
+    
+    else if(wordTypeToLookFor == KeywordType::verb)
+    {
+        for(int i = 0; i < treeToSearch.getNumChildren(); i++)
+        {
+            if(treeToSearch.getChild(i).getProperty("Type") == "Verb")
+            {
+                return i;
+            }
+            else if(!treeToSearch.getChild(i).hasProperty("Type"))
+            {
+                return -1;
+            }
+        }
+        return -1;
+    }
+    
+    for(int i = 0; i < treeToSearch.getNumChildren(); i++)
+    {
+        if(!treeToSearch.getChild(i).hasProperty("Type"))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int AddFilesComponent::getLastIndexOfKeywordType(const ValueTree& treeToSearch, KeywordType wordTypeToLookFor) const
+{
+    if(wordTypeToLookFor == KeywordType::other)
+    {
+        if(treeToSearch.getChild(treeToSearch.getNumChildren() - 1).hasProperty("Type"))
+        {
+            return -1;
+        }
+        return treeToSearch.getNumChildren() - 1;
+    }
+    
+    int firstIndex = getFirstIndexOfKeywordType(treeToSearch, wordTypeToLookFor);
+    
+    if(firstIndex == -1)
+    {
+        return -1;
+    }
+    
+    String wordToLookFor;
+    
+    switch (wordTypeToLookFor)
+    {
+        case KeywordType::noun:
+            wordToLookFor = "Noun";
+            break;
+            
+        case KeywordType::verb:
+            wordToLookFor = "Verb";
+            break;
+    }
+    
+    for(int i = firstIndex; i < treeToSearch.getNumChildren(); i++)
+    {
+        if(treeToSearch.getChild(i).getProperty("Type") == wordToLookFor && (treeToSearch.getChild(i+1).getProperty("Type") != wordToLookFor || !treeToSearch.getChild(i+1).isValid()))
+        {
+            return i;
+        }
+    }
+    
+    return -1;
 }
