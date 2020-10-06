@@ -131,7 +131,7 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
     {
         ValueTree fileTree("File");
         fileTree.setProperty("Path", file.getFullPathName(), nullptr);
-        fileTree.setProperty("ID Num", maxFXIDNum, nullptr);
+        fileTree.setProperty("IDNum", maxFXIDNum, nullptr);
         fileTree.appendChild(ValueTree("Catagories"), nullptr);
         fileTree.appendChild(ValueTree("Keywords"), nullptr);
         
@@ -314,19 +314,18 @@ void AddFilesComponent::valueTreePropertyChanged(ValueTree& treeWhosePropertyHas
             {
                 if(fxTree.getChildWithName("ListBoxData").getProperty("Selected"))
                 {
-                    var categoryID = treeWhosePropertyHasChanged.getProperty("ID Num");
-                    var fxID = fxTree.getProperty("ID Num");
-                
+                    var categoryID = treeWhosePropertyHasChanged.getProperty("IDNum");
+                    var fxID = fxTree.getProperty("IDNum");
                 
                     //Adds the category ID number to the FX
                     ValueTree newCategory("Catagory");
-                    newCategory.setProperty("ID Num", categoryID, nullptr);
+                    newCategory.setProperty("IDNum", categoryID, nullptr);
                     fxTree.getChildWithName("Catagories").appendChild(newCategory, nullptr);
                 
                     //Adds the FX ID number to the category
                     ValueTree newFX("FX");
-                    newFX.setProperty("ID Num", fxID, nullptr);
-                    treeWhosePropertyHasChanged.getChildWithName("FX List").appendChild(newFX, nullptr);
+                    newFX.setProperty("IDNum", fxID, nullptr);
+                    treeWhosePropertyHasChanged.getChildWithName("FXList").appendChild(newFX, nullptr);
                 
                     checkAndUpdateIfFXIsReady(fxTree);
                 }
@@ -340,18 +339,16 @@ void AddFilesComponent::valueTreePropertyChanged(ValueTree& treeWhosePropertyHas
             {
                 if(fxTree.getChildWithName("ListBoxData").getProperty("Selected"))
                 {
-                    var categoryID = treeWhosePropertyHasChanged.getProperty("ID Num");
-                    var fxID = fxTree.getProperty("ID Num");
-                    
+                    var categoryID = treeWhosePropertyHasChanged.getProperty("IDNum");
+                    var fxID = fxTree.getProperty("IDNum");
                     
                     //Removes the category ID from the FX
-                    ValueTree categoryToRemove = fxTree.getChildWithName("Catagories").getChildWithProperty("ID Num", categoryID);
+                    ValueTree categoryToRemove = fxTree.getChildWithName("Catagories").getChildWithProperty("IDNum", categoryID);
                     fxTree.getChildWithName("Catagories").removeChild(categoryToRemove, nullptr);
                     
-                    
                     //Removes the FX ID from the category
-                    ValueTree FXToRemove = treeWhosePropertyHasChanged.getChildWithName("FX List").getChildWithProperty("ID Num", fxID);
-                    treeWhosePropertyHasChanged.getChildWithName("FX List").removeChild(FXToRemove, nullptr);
+                    ValueTree FXToRemove = treeWhosePropertyHasChanged.getChildWithName("FXList").getChildWithProperty("IDNum", fxID);
+                    treeWhosePropertyHasChanged.getChildWithName("FXList").removeChild(FXToRemove, nullptr);
                 }
                 
                 checkAndUpdateIfFXIsReady(fxTree);

@@ -16,6 +16,7 @@
 #include "MenuModel.h"
 #include "ComponentWindow.h"
 #include "AddFilesComponent.h"
+#include "DataFormatters.h"
 
 class AudioFileManagementApplication  : public juce::JUCEApplication,
                                         public juce::ActionListener
@@ -57,6 +58,7 @@ private:
     ProjectFilesHandler fileHandler;
     std::unique_ptr<ComponentWindow> addFilesWindow;
     std::unique_ptr<AddFilesComponent> addFilesComponent;
+    std::unique_ptr<CategoryDataFormatter> categoryDataHandler;
     
     ValueTree dataTree;
     

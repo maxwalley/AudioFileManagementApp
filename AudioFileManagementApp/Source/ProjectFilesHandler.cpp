@@ -117,18 +117,47 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
         
         XmlElement* test = tree.getChildByName("Catagories");
         
-        test->createNewChildElement("Catagory")->setAttribute("Name", "Vehicles");
-        test->getChildByAttribute("Name", "Vehicles")->createNewChildElement("Catagory")->setAttribute("Name", "Car");
-        test->getChildByAttribute("Name", "Vehicles")->createNewChildElement("Catagory")->setAttribute("Name", "Bike");
-        test->getChildByAttribute("Name", "Vehicles")->createNewChildElement("Catagory")->setAttribute("Name", "Boat");
+        auto vehiclesChild = test->createNewChildElement("Catagory");
+        vehiclesChild->setAttribute("Name", "Vehicles");
+        vehiclesChild->setAttribute("IDNum", 1);
         
-        test->createNewChildElement("Catagory")->setAttribute("Name", "Animals");
-        test->getChildByAttribute("Name", "Animals")->createNewChildElement("Catagory")->setAttribute("Name", "Cat");
-        test->getChildByAttribute("Name", "Animals")->createNewChildElement("Catagory")->setAttribute("Name", "Greyhound");
+        auto carSubChild = vehiclesChild->createNewChildElement("Catagory");
+        carSubChild->setAttribute("Name", "Car");
+        carSubChild->setAttribute("IDNum", 2);
         
-        test->createNewChildElement("Test")->setAttribute("Name", "Fruit");
-        test->getChildByAttribute("Name", "Fruit")->createNewChildElement("Test")->setAttribute("Name", "Lemon");
-        test->getChildByAttribute("Name", "Fruit")->createNewChildElement("Test")->setAttribute("Name", "Berry");
+        auto bikeSubChild = vehiclesChild->createNewChildElement("Catagory");
+        bikeSubChild->setAttribute("Name", "Bike");
+        bikeSubChild->setAttribute("IDNum", 3);
+        
+        auto boatSubChild = vehiclesChild->createNewChildElement("Catagory");
+        boatSubChild->setAttribute("Name", "Boat");
+        boatSubChild->setAttribute("IDNum", 4);
+        
+        
+        auto animalsChild = test->createNewChildElement("Catagory");
+        animalsChild->setAttribute("Name", "Animals");
+        animalsChild->setAttribute("IDNum", 5);
+        
+        auto catSubChild = animalsChild->createNewChildElement("Catagory");
+        catSubChild->setAttribute("Name", "Cat");
+        catSubChild->setAttribute("IDNum", 6);
+        
+        auto greyhoundSubChild = animalsChild->createNewChildElement("Catagory");
+        greyhoundSubChild->setAttribute("Name", "Greyhound");
+        greyhoundSubChild->setAttribute("IDNum", 7);
+        
+        
+        auto fruitChild = test->createNewChildElement("Catagory");
+        fruitChild->setAttribute("Name", "Fruit");
+        fruitChild->setAttribute("IDNum", 8);
+        
+        auto lemonSubChild = fruitChild->createNewChildElement("Catagory");
+        lemonSubChild->setAttribute("Name", "Lemon");
+        lemonSubChild->setAttribute("IDNum", 9);
+        
+        auto berrySubChild = fruitChild->createNewChildElement("Catagory");
+        berrySubChild->setAttribute("Name", "Berry");
+        berrySubChild->setAttribute("IDNum", 10);
         
         return tree;
     }

@@ -35,6 +35,14 @@
             file="Source/AddFilesParameterEditor.h"/>
       <FILE id="IioZKH" name="AddFilesParameterEditor.cpp" compile="1" resource="0"
             file="Source/AddFilesParameterEditor.cpp"/>
+      <FILE id="g1FemP" name="ValueTreeManager.h" compile="0" resource="0"
+            file="Source/ValueTreeManager.h"/>
+      <FILE id="PmtGJI" name="ValueTreeManager.cpp" compile="1" resource="0"
+            file="Source/ValueTreeManager.cpp"/>
+      <FILE id="gKrSoI" name="DataFormatters.h" compile="0" resource="0"
+            file="Source/DataFormatters.h"/>
+      <FILE id="U7BO2N" name="DataFormatters.cpp" compile="1" resource="0"
+            file="Source/DataFormatters.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
