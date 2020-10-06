@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 #include "AddFilesListModel.h"
 #include "AddFilesParameterEditor.h"
+#include "FXDataFormatter.h"
 
 //==============================================================================
 /*
@@ -33,7 +34,7 @@ class AddFilesComponent  : public Component,
 {
 public:
     
-    AddFilesComponent(ValueTree currentData);
+    AddFilesComponent(ValueTree currentData, FXDataFormatter* dataFormatter = nullptr);
     ~AddFilesComponent() override;
 
     void paint(Graphics& g) override;

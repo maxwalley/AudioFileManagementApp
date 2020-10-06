@@ -71,7 +71,7 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
         
         if(addFilesWindow->getContentComponent() == nullptr)
         {
-            addFilesComponent = std::make_unique<AddFilesComponent>(dataTree);
+            addFilesComponent = std::make_unique<AddFilesComponent>(dataTree, fxDataHandler.get());
             addFilesWindow->setContentNonOwned(addFilesComponent.get(), true);
         }
         

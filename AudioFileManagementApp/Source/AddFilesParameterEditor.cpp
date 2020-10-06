@@ -77,7 +77,7 @@ void ValueTreeItem::labelTextChanged(Label* label)
 
 void ValueTreeItem::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
-    if(parentTree == tree)
+    if(parentTree == tree && childWhichHasBeenAdded.getType().toString() == "Category")
     {
         addSubItem(new ValueTreeItem(childWhichHasBeenAdded));
     }
@@ -85,7 +85,7 @@ void ValueTreeItem::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childW
 
 void ValueTreeItem::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int index)
 {
-    if(parentTree == tree)
+    if(parentTree == tree && childWhichHasBeenRemoved.getType().toString() == "Category")
     {
         removeSubItem(index);
     }
@@ -112,7 +112,10 @@ void ValueTreeItem::refreshChildren()
         
         std::for_each(tree.begin(), tree.end(), [this](ValueTree curTree)
         {
-            addSubItem(new ValueTreeItem(curTree));
+            if(curTree.getType().toString() == "Category")
+            {
+                addSubItem(new ValueTreeItem(curTree));
+            }
         });
     }
 }
@@ -492,6 +495,8 @@ void AddFilesParameterEditor::lookAndHighlightCategory(const String& category, T
 
 StringArray AddFilesParameterEditor::seperateTextByCommaIntoArray(const String& textToSeperate) const
 {
+    //This function could be better
+    
     int commaIndex = textToSeperate.indexOfIgnoreCase(",");
     int lastComma = 0;
     
@@ -510,6 +515,14 @@ StringArray AddFilesParameterEditor::seperateTextByCommaIntoArray(const String& 
         
         lastComma = commaIndex;
         commaIndex = textToSeperate.indexOfIgnoreCase(++commaIndex, ",");
+    }
+    
+    String finalSub = textToSeperate.substring(lastComma, textToSeperate.length());
+    finalSub = finalSub.trimCharactersAtStart(", ");
+    
+    if(finalSub.isNotEmpty())
+    {
+        strings.add(finalSub);
     }
     
     return strings;

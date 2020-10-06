@@ -25,7 +25,7 @@ int FileArraySorter::compareElements(File& first, File& second) const
 }
 
 
-AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : dataToAddTo(currentData), newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData.getChildWithName("Categories")), filesDragged(false), addFilesButton("Add Files")
+AddFilesComponent::AddFilesComponent(juce::ValueTree currentData, FXDataFormatter* dataFormatter) : dataToAddTo(currentData), newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData.getChildWithName("Categories")), filesDragged(false), addFilesButton("Add Files")
 {
     setSize(600, 400);
     
@@ -40,6 +40,11 @@ AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : dataToAddTo(
     addFilesButton.addListener(this);
     
     dataToAddTo.addListener(this);
+    
+    if(dataFormatter != nullptr)
+    {
+        newFileData.addListener(dataFormatter);
+    }
 }
 
 AddFilesComponent::~AddFilesComponent()
@@ -128,10 +133,8 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
     
     std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
     {
-        ValueTree fileTree("File");
+        ValueTree fileTree("FX");
         fileTree.setProperty("Path", file.getFullPathName(), nullptr);
-        fileTree.appendChild(ValueTree("Categories"), nullptr);
-        fileTree.appendChild(ValueTree("Keywords"), nullptr);
         
         ValueTree listBoxDisplayData("ListBoxData");
         listBoxDisplayData.setProperty("Selected", false, nullptr);
@@ -242,26 +245,25 @@ void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specifi
     {
         ValueTree listBoxData = newFileData.getChild(i).getChildWithName("ListBoxData");
         ValueTree keywordsTree = newFileData.getChild(i).getChildWithName("Keywords");
-
+        
         if(listBoxData.getProperty("Selected"))
         {
             int firstIndex = getFirstIndexOfKeywordType(keywordsTree, specificDataFieldChanged);
             int lastIndex = getLastIndexOfKeywordType(keywordsTree, specificDataFieldChanged);
             
+            if(changedWords.size() <= lastIndex - firstIndex)
+            {
+                for(int i = changedWords.size() + firstIndex; i <= lastIndex; i++)
+                {
+                    keywordsTree.removeChild(i, nullptr);
+                }
+            }
+            
             for(int i = 0; i < changedWords.size(); i++)
             {
-                int indexSizeForDataType = lastIndex - firstIndex;
+                int indexRange = lastIndex - firstIndex;
                 
-                if(i <= indexSizeForDataType)
-                {
-                    //If one of this type already is there
-                    if(keywordsTree.getChild(i).getProperty("Name") != changedWords[i])
-                    {
-                        keywordsTree.getChild(i).setProperty("Name", changedWords[i], nullptr);
-                    }
-                }
-                
-                else if(i > indexSizeForDataType)
+                if(i > indexRange || firstIndex == -1)
                 {
                     ValueTree newWord("Word");
                     if(specificDataFieldChanged == AddFilesParameterEditor::KeywordType::noun)
@@ -277,20 +279,19 @@ void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specifi
                 
                     keywordsTree.addChild(newWord, ++lastIndex, nullptr);
                 }
-            
-                if(changedWords.size() <= lastIndex - firstIndex)
+                
+                else if(i <= indexRange)
                 {
-                    for(int i = changedWords.size() + firstIndex; i <= lastIndex; i++)
+                    //If one of this type already is there
+                    if(keywordsTree.getChild(i).getProperty("Name") != changedWords[i])
                     {
-                        keywordsTree.removeChild(i, nullptr);
+                        keywordsTree.getChild(i).setProperty("Name", changedWords[i], nullptr);
                     }
                 }
             }
-            
             checkAndUpdateIfFXIsReady(newFileData.getChild(i));
         }
     }
-    
     fileList.updateContent();
 }
 
@@ -340,9 +341,9 @@ void AddFilesComponent::valueTreePropertyChanged(ValueTree& treeWhosePropertyHas
                     //Removes the FX ID from the category
                     ValueTree FXToRemove = treeWhosePropertyHasChanged.getChildWithName("FXList").getChildWithProperty("IDNum", fxID);
                     treeWhosePropertyHasChanged.getChildWithName("FXList").removeChild(FXToRemove, nullptr);
+                    
+                    checkAndUpdateIfFXIsReady(fxTree);
                 }
-                
-                checkAndUpdateIfFXIsReady(fxTree);
             });
         }
     }
@@ -625,12 +626,16 @@ int AddFilesComponent::getLastIndexOfKeywordType(const ValueTree& treeToSearch, 
 void AddFilesComponent::checkAndUpdateIfFXIsReady(ValueTree treeToCheck)
 {
     ValueTree keywordsTree = treeToCheck.getChildWithName("Keywords");
+    ValueTree categoriesTree = treeToCheck.getChildWithName("Categories");
     ValueTree listBoxDataTree = treeToCheck.getChildWithName("ListBoxData");
     
-    //Give it a way to check if the categories field is empty
+    std::for_each(keywordsTree.begin(), keywordsTree.end(), [](const ValueTree& tree)
+    {
+        //DBG(tree.getProperty("Name").toString());
+    });
     
     //Checks and sets whether the data is ready
-    if(keywordsTree.getNumChildren() == 0)
+    if(keywordsTree.getNumChildren() == 0 || categoriesTree.getNumChildren() == 0)
     {
         listBoxDataTree.setProperty("Completed", false, nullptr);
     }
