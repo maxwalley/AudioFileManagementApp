@@ -118,7 +118,7 @@ void ValueTreeItem::refreshChildren()
 }
 
 //==============================================================================
-AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : dataToAddTo(currentData), newCatButton("New Catagory"), removeCatButton("Remove Catagory"), lastDescripEditorText("")
+AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : dataToAddTo(currentData), newCatButton("New Category"), removeCatButton("Remove Category"), lastDescripEditorText("")
 {
     addAndMakeVisible(titleLabel);
     titleLabel.setText("Parameters", dontSendNotification);
@@ -130,17 +130,17 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
     newVersionLabel.setText("Files are new versions of exisiting files", dontSendNotification);
     newVersionLabel.attachToComponent(&newVersionToggle, true);
     
-    catagoryViewer.setRootItem(new ValueTreeItem(dataToAddTo));
-    catagoryViewer.setRootItemVisible(false);
-    addAndMakeVisible(catagoryViewer);
+    categoryViewer.setRootItem(new ValueTreeItem(dataToAddTo));
+    categoryViewer.setRootItemVisible(false);
+    addAndMakeVisible(categoryViewer);
     
     addAndMakeVisible(newCatButton);
     newCatButton.addListener(this);
-    newCatButton.setTooltip("Add a new catagory to each of the highlighted items");
+    newCatButton.setTooltip("Add a new category to each of the highlighted items");
     
     addAndMakeVisible(removeCatButton);
     removeCatButton.addListener(this);
-    removeCatButton.setTooltip("Remove all selected catagories. Warning: this will remove this catagory from all fx using it");
+    removeCatButton.setTooltip("Remove all selected categories. Warning: this will remove this category from all fx using it");
     
     addAndMakeVisible(nounLabel);
     nounLabel.setColour(Label::ColourIds::outlineColourId, Colours::black);
@@ -162,7 +162,7 @@ AddFilesParameterEditor::AddFilesParameterEditor(juce::ValueTree currentData) : 
 
 AddFilesParameterEditor::~AddFilesParameterEditor()
 {
-    catagoryViewer.deleteRootItem();
+    categoryViewer.deleteRootItem();
 }
 
 void AddFilesParameterEditor::paint (juce::Graphics& g)
@@ -174,7 +174,7 @@ void AddFilesParameterEditor::paint (juce::Graphics& g)
     
     if(!newVersionToggle.getToggleState())
     {
-        g.drawText("Choose Catagories", 0, 80, getWidth(), 10, Justification::left);
+        g.drawText("Choose Categories", 0, 80, getWidth(), 10, Justification::left);
         g.drawText("Noun", 10, 290, 120, 15, Justification::centred);
         g.drawText("Verb", getWidth() - 130, 290, 120, 15, Justification::centred);
         g.drawText("Descriptive Words", 10, 335, getWidth() - 20, 15, Justification::left);
@@ -188,7 +188,7 @@ void AddFilesParameterEditor::resized()
     if(!dataToShow.isValid())
     {
         newVersionToggle.setVisible(false);
-        catagoryViewer.setVisible(false);
+        categoryViewer.setVisible(false);
         newCatButton.setVisible(false);
         removeCatButton.setVisible(false);
         nounLabel.setVisible(false);
@@ -197,7 +197,7 @@ void AddFilesParameterEditor::resized()
         return;
     }
     
-    catagoryViewer.setVisible(true);
+    categoryViewer.setVisible(true);
     newVersionToggle.setVisible(true);
     newCatButton.setVisible(true);
     removeCatButton.setVisible(true);
@@ -209,7 +209,7 @@ void AddFilesParameterEditor::resized()
     
     if(!newVersionToggle.getToggleState())
     {
-        catagoryViewer.setBounds(0, 95, getWidth(), 155);
+        categoryViewer.setBounds(0, 95, getWidth(), 155);
         newCatButton.setBounds(10, 260, 120, 20);
         removeCatButton.setBounds(getWidth() - 130, 260, 120, 20);
         nounLabel.setBounds(10, 305, 120, 20);
@@ -218,7 +218,7 @@ void AddFilesParameterEditor::resized()
     }
     else
     {
-        catagoryViewer.setVisible(false);
+        categoryViewer.setVisible(false);
     }
 }
 
@@ -291,7 +291,7 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
             lastDescripEditorText = descripKeywords;
         }
         
-        ValueTree catChild = dataToShow.getChildWithName("Catagories");
+        ValueTree catChild = dataToShow.getChildWithName("Categories");
         
         if(catChild.isValid())
         {
@@ -299,7 +299,7 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
             
             std::for_each(catChild.begin(), catChild.end(), [this](const ValueTree& tree)
             {
-                lookAndHighlightCatagory(tree.getProperty("Name"), catagoryViewer.getRootItem());
+                lookAndHighlightCategory(tree.getProperty("Name"), categoryViewer.getRootItem());
             });
         }
     }
@@ -307,7 +307,7 @@ void AddFilesParameterEditor::setDataToShow(ValueTree newData)
     else
     {
         descripEditor.setText("");
-        catagoryViewer.clearSelectedItems();
+        categoryViewer.clearSelectedItems();
     }
 }
 
@@ -356,16 +356,16 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
     
     else if(button == &newCatButton)
     {
-        int numSelected = catagoryViewer.getNumSelectedItems();
+        int numSelected = categoryViewer.getNumSelectedItems();
         
         if(numSelected == 0)
         {
-            ValueTreeItem* rootItem = dynamic_cast<ValueTreeItem*>(catagoryViewer.getRootItem());
+            ValueTreeItem* rootItem = dynamic_cast<ValueTreeItem*>(categoryViewer.getRootItem());
             
             if(rootItem != nullptr)
             {
-                ValueTree newChild("Catagory");
-                newChild.setProperty("Name", "New Catagory", nullptr);
+                ValueTree newChild("Category");
+                newChild.setProperty("Name", "New Category", nullptr);
                 rootItem->getShownTree().appendChild(newChild, nullptr);
             }
             
@@ -374,15 +374,15 @@ void AddFilesParameterEditor::buttonClicked(Button* button)
         
         for(int i = 0; i < numSelected; i++)
         {
-            ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(catagoryViewer.getSelectedItem(i));
+            ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(categoryViewer.getSelectedItem(i));
             
             if(selectedItem == nullptr)
             {
                 continue;
             }
             
-            ValueTree newChild("Catagory");
-            newChild.setProperty("Name", "New Catagory", nullptr);
+            ValueTree newChild("Category");
+            newChild.setProperty("Name", "New Category", nullptr);
             
             selectedItem->getShownTree().appendChild(newChild, nullptr);
         }
@@ -437,19 +437,19 @@ void AddFilesParameterEditor::textEditorFocusLost(TextEditor& editor)
 
 void AddFilesParameterEditor::deleteSelectedItems()
 {
-    int numSelected = catagoryViewer.getNumSelectedItems();
+    int numSelected = categoryViewer.getNumSelectedItems();
     
     if(numSelected == 0)
     {
         return;
     }
     
-    if(AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Are you sure you want to delete this catagory?", "Deleting these catagories will delete them from any associated fx. Are you sure you want to continue?", "Continue", "Cancel", this))
+    if(AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Are you sure you want to delete this category?", "Deleting these categories will delete them from any associated fx. Are you sure you want to continue?", "Continue", "Cancel", this))
     {
     /*
     for(int i = 0; i < numSelected; i++)
     {
-        ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(catagoryViewer.getSelectedItem(i));
+        ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(categoryViewer.getSelectedItem(i));
         
         if(selectedItem == nullptr)
         {
@@ -461,11 +461,11 @@ void AddFilesParameterEditor::deleteSelectedItems()
         selectedTree.getParent().removeChild(selectedTree, nullptr);
         
     }*/
-        DBG("This is not yet implemented - catagories will need to be removed from fx");
+        DBG("This is not yet implemented - categories will need to be removed from fx");
     }
 }
 
-void AddFilesParameterEditor::lookAndHighlightCatagory(const String& catagory, TreeViewItem* treeToSearch)
+void AddFilesParameterEditor::lookAndHighlightCategory(const String& category, TreeViewItem* treeToSearch)
 {
     for(int i = 0; i < treeToSearch->getNumSubItems(); i++)
     {
@@ -476,7 +476,7 @@ void AddFilesParameterEditor::lookAndHighlightCatagory(const String& catagory, T
             continue;
         }
         
-        if(tree->getShownTree().getProperty("Name").toString() == catagory)
+        if(tree->getShownTree().getProperty("Name").toString() == category)
         {
             tree->getParentItem()->setOpen(true);
             tree->setSelected(true, false);
@@ -485,7 +485,7 @@ void AddFilesParameterEditor::lookAndHighlightCatagory(const String& catagory, T
         
         if(tree->getNumSubItems() > 0)
         {
-            lookAndHighlightCatagory(catagory, tree);
+            lookAndHighlightCategory(category, tree);
         }
     }
 }

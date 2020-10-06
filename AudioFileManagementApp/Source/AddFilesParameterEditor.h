@@ -66,8 +66,7 @@ public:
     {
         noun,
         verb,
-        other,
-        category
+        other
     };
     
     AddFilesParameterEditor(juce::ValueTree currentData);
@@ -106,7 +105,7 @@ private:
     
     void deleteSelectedItems();
     
-    void lookAndHighlightCatagory(const String& catagory, TreeViewItem* treeToSearch);
+    void lookAndHighlightCategory(const String& category, TreeViewItem* treeToSearch);
     
     StringArray seperateTextByCommaIntoArray(const String& textToSeperate) const;
     
@@ -117,7 +116,7 @@ private:
     
     //This will set the property "AddComponentTreeViewSelected" to whether its selected to the tree being displayed
     //These changes can be recorded and acted upon using a ValueTree::Listener for the data being displayed
-    TreeView catagoryViewer;
+    TreeView categoryViewer;
     ValueTree dataToAddTo;
     
     TextButton newCatButton;

@@ -8,9 +8,9 @@
   ==============================================================================
 */
 
-#include "DataFormatters.h"
+#include "CategoryDataFormatter.h"
 
-CategoryDataFormatter::CategoryDataFormatter(ValueTree dataTree)  : ValueTreeManager(dataTree, "Catagory", true)
+CategoryDataFormatter::CategoryDataFormatter(ValueTree dataTree)  : ValueTreeManager(dataTree, "Category", true)
 {
     initialFormatOfTree();
 }
@@ -22,7 +22,7 @@ CategoryDataFormatter::~CategoryDataFormatter()
 
 void CategoryDataFormatter::childTreeAdded(ValueTree& parent, ValueTree& newChild)
 {
-    if(newChild.getType().toString() != "FXList")
+    if(newChild.getType().toString() == "Category")
     {
         newChild.getOrCreateChildWithName("FXList", nullptr);
     }
@@ -37,7 +37,7 @@ void CategoryDataFormatter::initialFormatOfTree(ValueTree treeToFormat)
     
     std::for_each(treeToFormat.begin(), treeToFormat.end(), [this](ValueTree tree)
     {
-        if(tree.getType().toString() == "Catagory")
+        if(tree.getType().toString() == "Category")
         {
             tree.getOrCreateChildWithName("FXList", nullptr);
         }

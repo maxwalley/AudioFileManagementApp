@@ -112,50 +112,50 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
     else
     {
         XmlElement tree("Data");
-        tree.createNewChildElement("Catagories");
+        tree.createNewChildElement("Categories");
         tree.createNewChildElement("FX");
         
-        XmlElement* test = tree.getChildByName("Catagories");
+        XmlElement* test = tree.getChildByName("Categories");
         
-        auto vehiclesChild = test->createNewChildElement("Catagory");
+        auto vehiclesChild = test->createNewChildElement("Category");
         vehiclesChild->setAttribute("Name", "Vehicles");
         vehiclesChild->setAttribute("IDNum", 1);
         
-        auto carSubChild = vehiclesChild->createNewChildElement("Catagory");
+        auto carSubChild = vehiclesChild->createNewChildElement("Category");
         carSubChild->setAttribute("Name", "Car");
         carSubChild->setAttribute("IDNum", 2);
         
-        auto bikeSubChild = vehiclesChild->createNewChildElement("Catagory");
+        auto bikeSubChild = vehiclesChild->createNewChildElement("Category");
         bikeSubChild->setAttribute("Name", "Bike");
         bikeSubChild->setAttribute("IDNum", 3);
         
-        auto boatSubChild = vehiclesChild->createNewChildElement("Catagory");
+        auto boatSubChild = vehiclesChild->createNewChildElement("Category");
         boatSubChild->setAttribute("Name", "Boat");
         boatSubChild->setAttribute("IDNum", 4);
         
         
-        auto animalsChild = test->createNewChildElement("Catagory");
+        auto animalsChild = test->createNewChildElement("Category");
         animalsChild->setAttribute("Name", "Animals");
         animalsChild->setAttribute("IDNum", 5);
         
-        auto catSubChild = animalsChild->createNewChildElement("Catagory");
+        auto catSubChild = animalsChild->createNewChildElement("Category");
         catSubChild->setAttribute("Name", "Cat");
         catSubChild->setAttribute("IDNum", 6);
         
-        auto greyhoundSubChild = animalsChild->createNewChildElement("Catagory");
+        auto greyhoundSubChild = animalsChild->createNewChildElement("Category");
         greyhoundSubChild->setAttribute("Name", "Greyhound");
         greyhoundSubChild->setAttribute("IDNum", 7);
         
         
-        auto fruitChild = test->createNewChildElement("Catagory");
+        auto fruitChild = test->createNewChildElement("Category");
         fruitChild->setAttribute("Name", "Fruit");
         fruitChild->setAttribute("IDNum", 8);
         
-        auto lemonSubChild = fruitChild->createNewChildElement("Catagory");
+        auto lemonSubChild = fruitChild->createNewChildElement("Category");
         lemonSubChild->setAttribute("Name", "Lemon");
         lemonSubChild->setAttribute("IDNum", 9);
         
-        auto berrySubChild = fruitChild->createNewChildElement("Catagory");
+        auto berrySubChild = fruitChild->createNewChildElement("Category");
         berrySubChild->setAttribute("Name", "Berry");
         berrySubChild->setAttribute("IDNum", 10);
         
@@ -198,7 +198,7 @@ std::optional<ValueTree> ProjectFilesHandler::parseAndCheckFile (ProjectFile typ
     //Project Data XML
     
     //if it doesnt have these two children
-    if(!treeFromData.getChildWithName("Catagories").isValid() || !treeFromData.getChildWithName("FX").isValid())
+    if(!treeFromData.getChildWithName("Categories").isValid() || !treeFromData.getChildWithName("FX").isValid())
     {
         return std::nullopt;
     }

@@ -39,7 +39,8 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
     
     dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
     
-    categoryDataHandler = std::make_unique<CategoryDataFormatter>(dataTree.getChildWithName("Catagories"));
+    categoryDataHandler = std::make_unique<CategoryDataFormatter>(dataTree.getChildWithName("Categories"));
+    fxDataHandler = std::make_unique<FXDataFormatter>(dataTree.getChildWithName("FX"));
 }
 
 void AudioFileManagementApplication::shutdown()

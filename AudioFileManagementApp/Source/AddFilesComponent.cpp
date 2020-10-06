@@ -25,7 +25,7 @@ int FileArraySorter::compareElements(File& first, File& second) const
 }
 
 
-AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : dataToAddTo(currentData), newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData.getChildWithName("Catagories")), filesDragged(false), addFilesButton("Add Files")
+AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : dataToAddTo(currentData), newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData.getChildWithName("Categories")), filesDragged(false), addFilesButton("Add Files")
 {
     setSize(600, 400);
     
@@ -125,14 +125,12 @@ bool AddFilesComponent::processAndAddFiles(const Array<File>& filesToAdd)
 
 void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
 {
-    int maxFXIDNum = dataToAddTo.getChildWithName("Catagories").getNumChildren();
     
-    std::for_each(filesToAdd.begin(), filesToAdd.end(), [this, &maxFXIDNum](const File& file)
+    std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
     {
         ValueTree fileTree("File");
         fileTree.setProperty("Path", file.getFullPathName(), nullptr);
-        fileTree.setProperty("IDNum", maxFXIDNum, nullptr);
-        fileTree.appendChild(ValueTree("Catagories"), nullptr);
+        fileTree.appendChild(ValueTree("Categories"), nullptr);
         fileTree.appendChild(ValueTree("Keywords"), nullptr);
         
         ValueTree listBoxDisplayData("ListBoxData");
@@ -142,8 +140,6 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
         fileTree.appendChild(listBoxDisplayData, nullptr);
         
         newFileData.addChild(fileTree, -1, nullptr);
-        
-        maxFXIDNum++;
     });
     
     fileList.updateContent();
@@ -241,11 +237,6 @@ void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specifi
 {
     StringArray changedWords = paramEditor.getTextFromComponent(specificDataFieldChanged);
     
-    if(specificDataFieldChanged == AddFilesParameterEditor::KeywordType::category)
-    {
-        return;
-    }
-    
     //checks if data is ready and changes the ready symbol on the selected items
     for(int i = 0; i < newFileData.getNumChildren(); i++)
     {
@@ -318,9 +309,9 @@ void AddFilesComponent::valueTreePropertyChanged(ValueTree& treeWhosePropertyHas
                     var fxID = fxTree.getProperty("IDNum");
                 
                     //Adds the category ID number to the FX
-                    ValueTree newCategory("Catagory");
+                    ValueTree newCategory("Category");
                     newCategory.setProperty("IDNum", categoryID, nullptr);
-                    fxTree.getChildWithName("Catagories").appendChild(newCategory, nullptr);
+                    fxTree.getChildWithName("Categories").appendChild(newCategory, nullptr);
                 
                     //Adds the FX ID number to the category
                     ValueTree newFX("FX");
@@ -343,8 +334,8 @@ void AddFilesComponent::valueTreePropertyChanged(ValueTree& treeWhosePropertyHas
                     var fxID = fxTree.getProperty("IDNum");
                     
                     //Removes the category ID from the FX
-                    ValueTree categoryToRemove = fxTree.getChildWithName("Catagories").getChildWithProperty("IDNum", categoryID);
-                    fxTree.getChildWithName("Catagories").removeChild(categoryToRemove, nullptr);
+                    ValueTree categoryToRemove = fxTree.getChildWithName("Categories").getChildWithProperty("IDNum", categoryID);
+                    fxTree.getChildWithName("Categories").removeChild(categoryToRemove, nullptr);
                     
                     //Removes the FX ID from the category
                     ValueTree FXToRemove = treeWhosePropertyHasChanged.getChildWithName("FXList").getChildWithProperty("IDNum", fxID);
@@ -393,7 +384,7 @@ void AddFilesComponent::refreshFilesToShow()
     
     ValueTree compTree = selectedTrees[0];
     
-    //Whether there are differences in catagories in selected values
+    //Whether there are differences in categories in selected values
     bool catDif = false;
     
     //Whether there are differences in keywords in selected values
@@ -404,7 +395,7 @@ void AddFilesComponent::refreshFilesToShow()
     {
         if(!catDif)
         {
-            if(compareTreeNoOrder(compTree.getChildWithName("Catagories"), selectedTrees[i].getChildWithName("Catagories")) == 0)
+            if(compareTreeNoOrder(compTree.getChildWithName("Categories"), selectedTrees[i].getChildWithName("Categories")) == 0)
             {
                 catDif = true;
             }
@@ -419,18 +410,18 @@ void AddFilesComponent::refreshFilesToShow()
         }
     }
     
-    ValueTree combCats("Catagories");
+    ValueTree combCats("Categories");
     
     //If differences have been found it sets this to the comp value
     if(catDif)
     {
-        ValueTree multipleCats("Catagory");
+        ValueTree multipleCats("Category");
         multipleCats.setProperty("Name", "Multiple Values", nullptr);
         combCats.appendChild(multipleCats, nullptr);
     }
     else
     {
-        combCats = compTree.getChildWithName("Catagories").createCopy();
+        combCats = compTree.getChildWithName("Categories").createCopy();
     }
     
     combinationOfTrees.appendChild(combCats, nullptr);
@@ -636,7 +627,7 @@ void AddFilesComponent::checkAndUpdateIfFXIsReady(ValueTree treeToCheck)
     ValueTree keywordsTree = treeToCheck.getChildWithName("Keywords");
     ValueTree listBoxDataTree = treeToCheck.getChildWithName("ListBoxData");
     
-    //Give it a way to check if the catagories field is empty
+    //Give it a way to check if the categories field is empty
     
     //Checks and sets whether the data is ready
     if(keywordsTree.getNumChildren() == 0)
