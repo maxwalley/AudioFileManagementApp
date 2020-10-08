@@ -240,58 +240,106 @@ void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specifi
 {
     StringArray changedWords = paramEditor.getTextFromComponent(specificDataFieldChanged);
     
-    //checks if data is ready and changes the ready symbol on the selected items
-    for(int i = 0; i < newFileData.getNumChildren(); i++)
+    var typeToLookFor;
+    
+    switch (specificDataFieldChanged)
     {
-        ValueTree listBoxData = newFileData.getChild(i).getChildWithName("ListBoxData");
-        ValueTree keywordsTree = newFileData.getChild(i).getChildWithName("Keywords");
-        
-        if(listBoxData.getProperty("Selected"))
-        {
-            int firstIndex = getFirstIndexOfKeywordType(keywordsTree, specificDataFieldChanged);
-            int lastIndex = getLastIndexOfKeywordType(keywordsTree, specificDataFieldChanged);
+        case AddFilesParameterEditor::KeywordType::noun:
+            typeToLookFor = "Noun";
+            break;
             
-            if(changedWords.size() <= lastIndex - firstIndex)
+        case AddFilesParameterEditor::KeywordType::verb:
+            typeToLookFor = "Verb";
+            break;
+            
+        case AddFilesParameterEditor::KeywordType::other:
+            typeToLookFor = "Unspec";
+            break;
+    }
+    
+    std::for_each(newFileData.begin(), newFileData.end(), [this, &changedWords, &specificDataFieldChanged, &typeToLookFor](ValueTree fxTree)
+    {
+        if(fxTree.getChildWithName("ListBoxData").getProperty("Selected"))
+        {
+            ValueTree keywordsTree = fxTree.getChildWithName("Keywords");
+            int startIndex = getFirstIndexOfKeywordType(keywordsTree, specificDataFieldChanged);
+            int endIndex = getLastIndexOfKeywordType(keywordsTree, specificDataFieldChanged);
+            
+            if(startIndex == -1)
             {
-                for(int i = changedWords.size() + firstIndex; i <= lastIndex; i++)
+                if(specificDataFieldChanged == AddFilesParameterEditor::KeywordType::noun)
                 {
-                    keywordsTree.removeChild(i, nullptr);
+                    startIndex = 0;
+                }
+                else if(specificDataFieldChanged == AddFilesParameterEditor::KeywordType::verb)
+                {
+                    int otherIndex = getFirstIndexOfKeywordType(keywordsTree, AddFilesParameterEditor::KeywordType::other);
+                    
+                    if(otherIndex != -1)
+                    {
+                        startIndex = otherIndex;
+                    }
+                    else
+                    {
+                        int numKeys = keywordsTree.getNumChildren();
+                        
+                        if(numKeys == 0)
+                        {
+                            startIndex = 0;
+                        }
+                        else
+                        {
+                            startIndex = numKeys;
+                        }
+                    }
+                }
+                else if(specificDataFieldChanged == AddFilesParameterEditor::KeywordType::other)
+                {
+                    int numKeys = keywordsTree.getNumChildren();
+                    
+                    if(numKeys == 0)
+                    {
+                        startIndex = 0;
+                    }
+                    else
+                    {
+                        startIndex = numKeys;
+                    }
                 }
             }
             
             for(int i = 0; i < changedWords.size(); i++)
             {
-                int indexRange = lastIndex - firstIndex;
+                ValueTree currentKey = keywordsTree.getChild(i + startIndex);
                 
-                if(i > indexRange || firstIndex == -1)
+                if(currentKey.isValid() && currentKey.getProperty("Type") == typeToLookFor)
                 {
-                    ValueTree newWord("Word");
-                    if(specificDataFieldChanged == AddFilesParameterEditor::KeywordType::noun)
+                    if(currentKey.getProperty("Name") != changedWords[i])
                     {
-                        newWord.setProperty("Type", "Noun", nullptr);
+                        currentKey.setProperty("Name", changedWords[i], nullptr);
                     }
-                    else if(specificDataFieldChanged == AddFilesParameterEditor::KeywordType::verb)
-                    {
-                        newWord.setProperty("Type", "Verb", nullptr);
-                    }
-                    
-                    newWord.setProperty("Name", changedWords[i], nullptr);
-                
-                    keywordsTree.addChild(newWord, ++lastIndex, nullptr);
                 }
-                
-                else if(i <= indexRange)
+                else
                 {
-                    //If one of this type already is there
-                    if(keywordsTree.getChild(i).getProperty("Name") != changedWords[i])
-                    {
-                        keywordsTree.getChild(i).setProperty("Name", changedWords[i], nullptr);
-                    }
+                    ValueTree newKey("FX");
+                    newKey.setProperty("Name", changedWords[i], nullptr);
+                    newKey.setProperty("Type", typeToLookFor, nullptr);
+                    keywordsTree.addChild(newKey, i + startIndex, nullptr);
                 }
             }
-            checkAndUpdateIfFXIsReady(newFileData.getChild(i));
+            
+            if(endIndex != -1 && (endIndex - startIndex) + 1 > changedWords.size())
+            {
+                for(int indexToRemove = startIndex + changedWords.size(); indexToRemove <= endIndex; indexToRemove++)
+                {
+                    keywordsTree.removeChild(indexToRemove, nullptr);
+                }
+            }
+            
+            checkAndUpdateIfFXIsReady(fxTree);
         }
-    }
+    });
+    
     fileList.updateContent();
 }
 
@@ -346,6 +394,8 @@ void AddFilesComponent::valueTreePropertyChanged(ValueTree& treeWhosePropertyHas
                 }
             });
         }
+        
+        fileList.updateContent();
     }
 }
 
@@ -563,7 +613,8 @@ int AddFilesComponent::getFirstIndexOfKeywordType(const ValueTree& treeToSearch,
             {
                 return i;
             }
-            else if(!treeToSearch.getChild(i).hasProperty("Type"))
+            
+            else if(treeToSearch.getChild(i).getProperty("Type") == "Unspec")
             {
                 return -1;
             }
@@ -571,9 +622,10 @@ int AddFilesComponent::getFirstIndexOfKeywordType(const ValueTree& treeToSearch,
         return -1;
     }
     
+    //Unspecified type
     for(int i = 0; i < treeToSearch.getNumChildren(); i++)
     {
-        if(!treeToSearch.getChild(i).hasProperty("Type"))
+        if(treeToSearch.getChild(i).getProperty("Type") == "Unspec")
         {
             return i;
         }
@@ -583,15 +635,6 @@ int AddFilesComponent::getFirstIndexOfKeywordType(const ValueTree& treeToSearch,
 
 int AddFilesComponent::getLastIndexOfKeywordType(const ValueTree& treeToSearch, AddFilesParameterEditor::KeywordType wordTypeToLookFor) const
 {
-    if(wordTypeToLookFor == AddFilesParameterEditor::KeywordType::other)
-    {
-        if(treeToSearch.getChild(treeToSearch.getNumChildren() - 1).hasProperty("Type"))
-        {
-            return -1;
-        }
-        return treeToSearch.getNumChildren() - 1;
-    }
-    
     int firstIndex = getFirstIndexOfKeywordType(treeToSearch, wordTypeToLookFor);
     
     if(firstIndex == -1)
@@ -609,6 +652,10 @@ int AddFilesComponent::getLastIndexOfKeywordType(const ValueTree& treeToSearch, 
             
         case AddFilesParameterEditor::KeywordType::verb:
             wordToLookFor = "Verb";
+            break;
+            
+        case AddFilesParameterEditor::KeywordType::other:
+            wordToLookFor = "Unspec";
             break;
     }
     
@@ -628,11 +675,6 @@ void AddFilesComponent::checkAndUpdateIfFXIsReady(ValueTree treeToCheck)
     ValueTree keywordsTree = treeToCheck.getChildWithName("Keywords");
     ValueTree categoriesTree = treeToCheck.getChildWithName("Categories");
     ValueTree listBoxDataTree = treeToCheck.getChildWithName("ListBoxData");
-    
-    std::for_each(keywordsTree.begin(), keywordsTree.end(), [](const ValueTree& tree)
-    {
-        //DBG(tree.getProperty("Name").toString());
-    });
     
     //Checks and sets whether the data is ready
     if(keywordsTree.getNumChildren() == 0 || categoriesTree.getNumChildren() == 0)

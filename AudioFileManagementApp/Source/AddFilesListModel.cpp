@@ -182,7 +182,6 @@ Component* AddFilesListModel::refreshComponentForRow (int rowNum, bool isRowSele
         fileName = fileName.fromLastOccurrenceOf("/", false, false);
         itemToReturn->setItemText(fileName);
         itemToReturn->setCompleted(currentTree.getChildWithName("ListBoxData").getProperty("Completed"));
-        DBG(int(currentTree.getChildWithName("ListBoxData").getProperty("Completed")));
         itemToReturn->setButtonState(currentTree.getChildWithName("ListBoxData").getProperty("Selected"), sendNotification);
     }
     //Last row
