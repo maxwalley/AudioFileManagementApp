@@ -20,7 +20,8 @@
 #include "FXDataFormatter.h"
 
 class AudioFileManagementApplication  : public juce::JUCEApplication,
-                                        public juce::ActionListener
+                                        public juce::ActionListener,
+                                        public AddFilesComponent::Listener
 {
 public:
     
@@ -68,4 +69,5 @@ private:
     
     void actionListenerCallback(const juce::String& message) override;
     
+    void filesAdded() override;
 };

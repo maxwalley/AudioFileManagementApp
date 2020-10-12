@@ -40,7 +40,7 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
     dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
     
     categoryDataHandler = std::make_unique<CategoryDataFormatter>(dataTree.getChildWithName("Categories"));
-    fxDataHandler = std::make_unique<FXDataFormatter>(dataTree.getChildWithName("FX"));
+    fxDataHandler = std::make_unique<FXDataFormatter>(dataTree.getChildWithName("FXList"));
 }
 
 void AudioFileManagementApplication::shutdown()
@@ -72,6 +72,7 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
         if(addFilesWindow->getContentComponent() == nullptr)
         {
             addFilesComponent = std::make_unique<AddFilesComponent>(dataTree, fxDataHandler.get());
+            addFilesComponent->addListener(this);
             addFilesWindow->setContentNonOwned(addFilesComponent.get(), true);
         }
         
@@ -85,6 +86,11 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
             }
         }
     }
+}
+
+void AudioFileManagementApplication::filesAdded()
+{
+    addFilesWindow->setVisible(false);
 }
 
 AudioFileManagementApplication::MainWindow::MainWindow(juce::String name) : DocumentWindow (name, juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), DocumentWindow::allButtons)

@@ -148,15 +148,48 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
     fileList.updateContent();
 }
 
+void AddFilesComponent::addListener(Listener* newListener)
+{
+    listeners.push_back(newListener);
+}
+
+void AddFilesComponent::removeListener(Listener* listenerToRemove)
+{
+    std::remove(listeners.begin(), listeners.end(), listenerToRemove);
+}
+
 void AddFilesComponent::buttonClicked(Button* button)
 {
     if(button == &addFilesButton)
     {
-        //If all are ready - add them to main data stream and close this window.
-        //Otherwise highlight the ones which are not
+        bool allCompleted = std::all_of(newFileData.begin(), newFileData.end(), [](const ValueTree& tree)
+        {
+            return tree.getChildWithName("ListBoxData").getProperty("Completed");
+        });
         
-        //Also all the categories that have been assigned need to have specific ID number attached to them
-        //Also needs to remove the listbox display child from each
+        //If every item is completed
+        if(allCompleted)
+        {
+            std::for_each(newFileData.begin(), newFileData.end(), [this](ValueTree file)
+            {
+                file.removeChild(file.getChildWithName("ListBoxData"), nullptr);
+                
+                newFileData.removeChild(file, nullptr);
+                dataToAddTo.getChildWithName("FXList").addChild(file, -1, nullptr);
+            });
+            
+            std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
+            {
+                lis->filesAdded();
+            });
+            
+            return;
+        }
+        
+        //If some items are not completed
+        AlertWindow::showMessageBox(AlertWindow::WarningIcon, "Please enter required data for each file before continuing", "To add these files please select at least one category and enter one keyword for each. Files that have not yet had this data entered for them are shown through the error symbol next to them.", "Close", this);
+        
+        //If all are ready - add them to main data stream and close this window.
     }
     
     ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());

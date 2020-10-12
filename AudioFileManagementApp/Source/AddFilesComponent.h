@@ -43,6 +43,16 @@ public:
     
     bool processAndAddFiles(const Array<File>& filesToAdd);
     void addFiles(const Array<File>& filesToAdd);
+    
+    class Listener
+    {
+    public:
+        virtual ~Listener(){};
+        virtual void filesAdded()=0;
+    };
+    
+    void addListener(Listener* newListener);
+    void removeListener(Listener* listenerToRemove);
 
 private:
     
@@ -92,6 +102,8 @@ private:
     bool filesDragged;
     
     TextButton addFilesButton;
+    
+    std::vector<Listener*> listeners;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AddFilesComponent)
 };

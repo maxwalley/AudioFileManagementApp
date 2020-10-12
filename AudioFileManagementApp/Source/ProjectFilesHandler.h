@@ -28,6 +28,8 @@ public:
     
     ValueTree getTreeFromFile(ProjectFile treeToReturn) const;
     
+    void saveFile(ProjectFile fileToSave) const;
+    
 private:
     
     bool createBlankFile (ProjectFile typeOfFileToCreate, File fileToCreate);

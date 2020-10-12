@@ -61,8 +61,8 @@ ProjectFilesHandler::ProjectFilesHandler(const String& settingsDirectoryPath) : 
 
 ProjectFilesHandler::~ProjectFilesHandler()
 {
-    projectDataTree.createXml()->writeTo(projectDataFile);
-    projectSettingsTree.createXml()->writeTo(projectSettingsFile);
+    saveFile(ProjectFile::projectData);
+    saveFile(ProjectFile::projectSettings);
 }
 
 ValueTree ProjectFilesHandler::getTreeFromFile(ProjectFile treeToReturn) const
@@ -74,6 +74,18 @@ ValueTree ProjectFilesHandler::getTreeFromFile(ProjectFile treeToReturn) const
             
         case ProjectFile::projectData:
             return projectDataTree;
+    }
+}
+
+void ProjectFilesHandler::saveFile(ProjectFile fileToSave) const
+{
+    if(fileToSave == ProjectFile::projectSettings)
+    {
+        projectSettingsTree.createXml()->writeTo(projectSettingsFile);
+    }
+    else if(fileToSave == ProjectFile::projectData)
+    {
+        projectDataTree.createXml()->writeTo(projectDataFile);
     }
 }
 
@@ -113,7 +125,7 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
     {
         XmlElement tree("Data");
         tree.createNewChildElement("Categories");
-        tree.createNewChildElement("FX");
+        tree.createNewChildElement("FXList");
         
         XmlElement* test = tree.getChildByName("Categories");
         
@@ -198,7 +210,7 @@ std::optional<ValueTree> ProjectFilesHandler::parseAndCheckFile (ProjectFile typ
     //Project Data XML
     
     //if it doesnt have these two children
-    if(!treeFromData.getChildWithName("Categories").isValid() || !treeFromData.getChildWithName("FX").isValid())
+    if(!treeFromData.getChildWithName("Categories").isValid() || !treeFromData.getChildWithName("FXList").isValid())
     {
         return std::nullopt;
     }
