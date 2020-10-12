@@ -44,11 +44,13 @@ public:
     bool processAndAddFiles(const Array<File>& filesToAdd);
     void addFiles(const Array<File>& filesToAdd);
     
+    int getNumberOfFilesBeingAdded() const;
+    
     class Listener
     {
     public:
         virtual ~Listener(){};
-        virtual void filesAdded()=0;
+        virtual void filesAdded(int numFilesAdded)=0;
     };
     
     void addListener(Listener* newListener);

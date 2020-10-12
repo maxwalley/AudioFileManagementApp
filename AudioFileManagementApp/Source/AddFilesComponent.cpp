@@ -148,6 +148,11 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
     fileList.updateContent();
 }
 
+int AddFilesComponent::getNumberOfFilesBeingAdded() const
+{
+    return newFileData.getNumChildren();
+}
+
 void AddFilesComponent::addListener(Listener* newListener)
 {
     listeners.push_back(newListener);
@@ -162,34 +167,42 @@ void AddFilesComponent::buttonClicked(Button* button)
 {
     if(button == &addFilesButton)
     {
-        bool allCompleted = std::all_of(newFileData.begin(), newFileData.end(), [](const ValueTree& tree)
-        {
-            return tree.getChildWithName("ListBoxData").getProperty("Completed");
-        });
+        bool anySelectedAndComplete = false;
+        int oldNumFilesToAdd = newFileData.getNumChildren();
         
-        //If every item is completed
-        if(allCompleted)
+        for (int i = 0; i < newFileData.getNumChildren(); i++)
         {
-            std::for_each(newFileData.begin(), newFileData.end(), [this](ValueTree file)
+            ValueTree file = newFileData.getChild(i);
+            ValueTree listBoxData = file.getChildWithName("ListBoxData");
+            
+            if(listBoxData.getProperty("Selected") && listBoxData.getProperty("Completed"))
             {
-                file.removeChild(file.getChildWithName("ListBoxData"), nullptr);
+                anySelectedAndComplete = true;
+                
+                file.removeChild(listBoxData, nullptr);
                 
                 newFileData.removeChild(file, nullptr);
-                dataToAddTo.getChildWithName("FXList").addChild(file, -1, nullptr);
-            });
-            
-            std::for_each(listeners.begin(), listeners.end(), [](Listener* lis)
-            {
-                lis->filesAdded();
-            });
-            
+                dataToAddTo.appendChild(file, nullptr);
+                
+                i--;
+            }
+        }
+        
+        if(!anySelectedAndComplete)
+        {
+            AlertWindow::showMessageBox(AlertWindow::WarningIcon, "No Selected Items are Ready to be Added!", "None of the selected items are ready to be added to this application. To make an item ready it must have at least one category selected and one keyword entered. If an item is not ready an alert icon is displayed on said items row.", "Close", this);
             return;
         }
         
-        //If some items are not completed
-        AlertWindow::showMessageBox(AlertWindow::WarningIcon, "Please enter required data for each file before continuing", "To add these files please select at least one category and enter one keyword for each. Files that have not yet had this data entered for them are shown through the error symbol next to them.", "Close", this);
+        std::for_each(listeners.begin(), listeners.end(), [this, &oldNumFilesToAdd](Listener* lis)
+        {
+            lis->filesAdded(newFileData.getNumChildren() - oldNumFilesToAdd);
+        });
         
-        //If all are ready - add them to main data stream and close this window.
+        fileList.updateContent();
+        paramEditor.setDataToShow(ValueTree());
+        
+        return;
     }
     
     ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());
@@ -354,7 +367,7 @@ void AddFilesComponent::dataChanged(AddFilesParameterEditor::KeywordType specifi
                 }
                 else
                 {
-                    ValueTree newKey("FX");
+                    ValueTree newKey("Word");
                     newKey.setProperty("Name", changedWords[i], nullptr);
                     newKey.setProperty("Type", typeToLookFor, nullptr);
                     keywordsTree.addChild(newKey, i + startIndex, nullptr);

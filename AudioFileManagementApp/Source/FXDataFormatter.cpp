@@ -10,7 +10,7 @@
 
 #include "FXDataFormatter.h"
 
-FXDataFormatter::FXDataFormatter(ValueTree fxData)  : ValueTreeManager(fxData)
+FXDataFormatter::FXDataFormatter(ValueTree fxData)  : ValueTreeManager(fxData, "FX", false)
 {
     initialTreeFormat();
 }

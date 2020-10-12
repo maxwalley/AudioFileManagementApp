@@ -88,9 +88,17 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
     }
 }
 
-void AudioFileManagementApplication::filesAdded()
+void AudioFileManagementApplication::filesAdded(int numFilesAdded)
 {
-    addFilesWindow->setVisible(false);
+    if(numFilesAdded > 0)
+    {
+        //update some sort of display
+    }
+    
+    if(addFilesComponent->getNumberOfFilesBeingAdded() == 0)
+    {
+        addFilesWindow->setVisible(false);
+    }
 }
 
 AudioFileManagementApplication::MainWindow::MainWindow(juce::String name) : DocumentWindow (name, juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), DocumentWindow::allButtons)

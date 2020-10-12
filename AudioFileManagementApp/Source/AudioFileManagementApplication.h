@@ -69,5 +69,5 @@ private:
     
     void actionListenerCallback(const juce::String& message) override;
     
-    void filesAdded() override;
+    void filesAdded(int numFilesAdded) override;
 };
