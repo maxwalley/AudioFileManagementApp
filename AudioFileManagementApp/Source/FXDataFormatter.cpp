@@ -20,7 +20,7 @@ FXDataFormatter::~FXDataFormatter()
     
 }
 
-void FXDataFormatter::deleteCategoryFromAllFX(const var& idNumToDelete)
+void FXDataFormatter::deleteCategoriesFromAllFX(const var& idNumToDelete)
 {
     std::for_each(managedTree.begin(), managedTree.end(), [&idNumToDelete](ValueTree fx)
     {
@@ -31,6 +31,24 @@ void FXDataFormatter::deleteCategoryFromAllFX(const var& idNumToDelete)
         {
             categoryList.removeChild(childToDelete, nullptr);
         }
+    });
+}
+
+void FXDataFormatter::deleteCategoriesFromAllFX(const std::vector<var>& idNumsToDelete)
+{
+    std::for_each(managedTree.begin(), managedTree.end(), [&idNumsToDelete](ValueTree fx)
+    {
+        ValueTree categoryList = fx.getChildWithName("Categories");
+        
+        std::for_each(idNumsToDelete.begin(), idNumsToDelete.end(), [&categoryList](const var& idNum)
+        {
+            ValueTree childToDelete = categoryList.getChildWithProperty("IDNum", idNum);
+            
+            if(childToDelete.isValid())
+            {
+                categoryList.removeChild(childToDelete, nullptr);
+            }
+        });
     });
 }
 

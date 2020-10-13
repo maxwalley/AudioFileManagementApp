@@ -23,6 +23,9 @@ public:
     //Leave treeToSearch blank if you want it to iterate through the managed tree
     ValueTree getTreeWithID(var idToLookFor, ValueTree treeToSearch = ValueTree()) const;
     
+    //If treesToGetIDsFrom is blank this will just get IDs from all trees
+    static std::vector<var> getAllIDNumsInTree(const ValueTree& treeToSearch, Identifier treesToGetIDsFrom = Identifier(), bool searchRootTreeforID = true);
+    
 protected:
     virtual void childTreeAdded(ValueTree& parentTree, ValueTree& newChild){};
     

@@ -63,6 +63,28 @@ ValueTree ValueTreeManager::getTreeWithID(var idToLookFor, ValueTree treeToSearc
     return foundTree;
 }
 
+std::vector<var> ValueTreeManager::getAllIDNumsInTree(const ValueTree& treeToSearch, Identifier treesToGetIDsFrom, bool searchRootTreeForID)
+{
+    std::vector<var> listOfIDs;
+    
+    if(searchRootTreeForID)
+    {
+        if(treeToSearch.hasProperty("IDNum") && (!treesToGetIDsFrom.isValid() || treeToSearch.getType() == treesToGetIDsFrom))
+        {
+            listOfIDs.push_back(treeToSearch.getProperty("IDNum"));
+        }
+    }
+    
+    std::for_each(treeToSearch.begin(), treeToSearch.end(), [&listOfIDs, &treesToGetIDsFrom](const ValueTree& child)
+    {
+        std::vector foundIDsInChild = getAllIDNumsInTree(child, treesToGetIDsFrom);
+        
+        listOfIDs.insert(listOfIDs.end(), foundIDsInChild.begin(), foundIDsInChild.end());
+    });
+    
+    return listOfIDs;
+}
+
 void ValueTreeManager::valueTreeChildAdded(ValueTree& parent, ValueTree& childThatHasBeenAdded)
 {
     addIDNumToTree(childThatHasBeenAdded);

@@ -21,7 +21,8 @@ public:
     FXDataFormatter(ValueTree fxData);
     ~FXDataFormatter();
     
-    void deleteCategoryFromAllFX(const var& idNumToDelete);
+    void deleteCategoriesFromAllFX(const var& idNumToDelete);
+    void deleteCategoriesFromAllFX(const std::vector<var>& idNumsToDelete);
     
 private:
     void childTreeAdded(ValueTree& parent, ValueTree& child) override;

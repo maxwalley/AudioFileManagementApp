@@ -43,12 +43,6 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
     
     categoryDataHandler = std::make_unique<CategoryDataFormatter>(dataTree.getChildWithName("Categories"));
     fxDataHandler = std::make_unique<FXDataFormatter>(dataTree.getChildWithName("FXList"));
-    
-    auto test = dataTree.getChildWithName("Categories").getChildWithProperty("Name", "Fruit");
-    
-    DBG(int(test.isValid()));
-    
-    test.removeChild(test.getChildWithProperty("Name", "Lemon"), nullptr);
 }
 
 void AudioFileManagementApplication::shutdown()
@@ -113,7 +107,9 @@ void AudioFileManagementApplication::valueTreeChildRemoved(ValueTree& parent, Va
 {
     if((parent == dataTree.getChildWithName("Categories") || parent.isAChildOf(dataTree.getChildWithName("Categories"))) && removedChild.getType().toString() == "Category")
     {
-        fxDataHandler->deleteCategoryFromAllFX(removedChild.getProperty("IDNum"));
+        std::vector<var> idsToDelete = ValueTreeManager::getAllIDNumsInTree(removedChild, "Category");
+        
+        fxDataHandler->deleteCategoriesFromAllFX(idsToDelete);
     }
 }
 
