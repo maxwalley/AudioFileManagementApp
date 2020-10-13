@@ -39,10 +39,7 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
     
     dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
     
-    dataTree.addListener(this);
-    
-    categoryDataHandler = std::make_unique<CategoryDataFormatter>(dataTree.getChildWithName("Categories"));
-    fxDataHandler = std::make_unique<FXDataFormatter>(dataTree.getChildWithName("FXList"));
+    dataManager = std::make_unique<DataTreeManager>(dataTree);
 }
 
 void AudioFileManagementApplication::shutdown()
@@ -66,6 +63,8 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
 {
     if(message == "Add")
     {
+        dataTree.getChildWithName("FXList").getChildWithName("NewFiles").removeAllChildren(nullptr);
+        
         if(addFilesWindow == nullptr)
         {
             addFilesWindow = std::make_unique<ComponentWindow>("Select Files to Add", Colours::silver, DocumentWindow::allButtons);
@@ -73,7 +72,7 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
         
         if(addFilesWindow->getContentComponent() == nullptr)
         {
-            addFilesComponent = std::make_unique<AddFilesComponent>(dataTree, fxDataHandler.get());
+            addFilesComponent = std::make_unique<AddFilesComponent>(dataTree);
             addFilesComponent->addListener(this);
             addFilesWindow->setContentNonOwned(addFilesComponent.get(), true);
         }
@@ -100,16 +99,6 @@ void AudioFileManagementApplication::filesAdded(int numFilesAdded)
     if(addFilesComponent->getNumberOfFilesBeingAdded() == 0)
     {
         addFilesWindow->setVisible(false);
-    }
-}
-
-void AudioFileManagementApplication::valueTreeChildRemoved(ValueTree& parent, ValueTree& removedChild, int index)
-{
-    if((parent == dataTree.getChildWithName("Categories") || parent.isAChildOf(dataTree.getChildWithName("Categories"))) && removedChild.getType().toString() == "Category")
-    {
-        std::vector<var> idsToDelete = ValueTreeManager::getAllIDNumsInTree(removedChild, "Category");
-        
-        fxDataHandler->deleteCategoriesFromAllFX(idsToDelete);
     }
 }
 

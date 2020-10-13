@@ -25,7 +25,7 @@ int FileArraySorter::compareElements(File& first, File& second) const
 }
 
 
-AddFilesComponent::AddFilesComponent(juce::ValueTree currentData, FXDataFormatter* dataFormatter) : dataToAddTo(currentData), newFileData("NewFiles"), listModel(newFileData, this), paramEditor(currentData.getChildWithName("Categories")), filesDragged(false), addFilesButton("Add Files")
+AddFilesComponent::AddFilesComponent(juce::ValueTree currentData) : dataToAddTo(currentData), newFileData(currentData.getChildWithName("FXList").getChildWithName("NewFiles")), listModel(newFileData, this), paramEditor(currentData.getChildWithName("Categories")), filesDragged(false), addFilesButton("Add Selected Files"), removeFilesButton("Remove Selected Files")
 {
     setSize(600, 400);
     
@@ -39,12 +39,10 @@ AddFilesComponent::AddFilesComponent(juce::ValueTree currentData, FXDataFormatte
     addAndMakeVisible(addFilesButton);
     addFilesButton.addListener(this);
     
-    dataToAddTo.addListener(this);
+    addAndMakeVisible(removeFilesButton);
+    removeFilesButton.addListener(this);
     
-    if(dataFormatter != nullptr)
-    {
-        newFileData.addListener(dataFormatter);
-    }
+    dataToAddTo.addListener(this);
 }
 
 AddFilesComponent::~AddFilesComponent()
@@ -75,7 +73,9 @@ void AddFilesComponent::resized()
     fileList.setBounds(0, 0, getWidth() / 2, getHeight() - 30);
     paramEditor.setBounds(getWidth() / 2, 0, getWidth() / 2, getHeight());
     
-    addFilesButton.setBounds(getWidth() / 4 - 50, getHeight() - 30, 100, 30);
+    addFilesButton.setBounds(20, getHeight() - 30, 120, 30);
+    
+    removeFilesButton.setBounds(160, getHeight() - 30, 120, 30);
 }
 
 bool AddFilesComponent::processAndAddFiles(const Array<File>& filesToAdd)
@@ -130,7 +130,6 @@ bool AddFilesComponent::processAndAddFiles(const Array<File>& filesToAdd)
 
 void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
 {
-    
     std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
     {
         ValueTree fileTree("FX");
@@ -181,6 +180,8 @@ void AddFilesComponent::buttonClicked(Button* button)
                 
                 file.removeChild(listBoxData, nullptr);
                 
+                file.setProperty("Moving", true, nullptr);
+                
                 newFileData.removeChild(file, nullptr);
                 dataToAddTo.getChildWithName("FXList").appendChild(file, nullptr);
                 
@@ -205,6 +206,25 @@ void AddFilesComponent::buttonClicked(Button* button)
         return;
     }
     
+    else if(button == &removeFilesButton)
+    {
+        for(int i = 0; i < newFileData.getNumChildren(); i++)
+        {
+            ValueTree listBoxData = newFileData.getChild(i).getChildWithName("ListBoxData");
+            
+            if(listBoxData.getProperty("Selected"))
+            {
+                newFileData.removeChild(i, nullptr);
+            }
+        }
+        
+        fileList.updateContent();
+        paramEditor.setDataToShow(ValueTree());
+        
+        return;
+    }
+    
+    //One of the toggle buttons from the listBox
     ToggleItem* rowComponent = dynamic_cast<ToggleItem*>(button->getParentComponent());
     
     if(rowComponent->getRowNum() < newFileData.getNumChildren())

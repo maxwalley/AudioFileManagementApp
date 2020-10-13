@@ -18,11 +18,11 @@
 #include "AddFilesComponent.h"
 #include "CategoryDataFormatter.h"
 #include "FXDataFormatter.h"
+#include "DataTreeManager.h"
 
 class AudioFileManagementApplication  : public juce::JUCEApplication,
                                         public juce::ActionListener,
-                                        public AddFilesComponent::Listener,
-                                        public ValueTree::Listener
+                                        public AddFilesComponent::Listener
 {
 public:
     
@@ -61,8 +61,7 @@ private:
     ProjectFilesHandler fileHandler;
     std::unique_ptr<ComponentWindow> addFilesWindow;
     std::unique_ptr<AddFilesComponent> addFilesComponent;
-    std::unique_ptr<CategoryDataFormatter> categoryDataHandler;
-    std::unique_ptr<FXDataFormatter> fxDataHandler;
+    std::unique_ptr<DataTreeManager> dataManager;
     
     ValueTree dataTree;
     
@@ -71,6 +70,4 @@ private:
     void actionListenerCallback(const juce::String& message) override;
     
     void filesAdded(int numFilesAdded) override;
-    
-    void valueTreeChildRemoved(ValueTree& parent, ValueTree& removedChild, int index) override;
 };

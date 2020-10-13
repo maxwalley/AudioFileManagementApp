@@ -47,6 +47,10 @@
             file="Source/FXDataFormatter.h"/>
       <FILE id="JkdAQO" name="FXDataFormatter.cpp" compile="1" resource="0"
             file="Source/FXDataFormatter.cpp"/>
+      <FILE id="PRRwJZ" name="DataTreeManager.h" compile="0" resource="0"
+            file="Source/DataTreeManager.h"/>
+      <FILE id="bat8uG" name="DataTreeManager.cpp" compile="1" resource="0"
+            file="Source/DataTreeManager.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>

@@ -70,12 +70,15 @@ void FXDataFormatter::initialTreeFormat(ValueTree treeToFormat)
     
     std::for_each(treeToFormat.begin(), treeToFormat.end(), [this](ValueTree tree)
     {
-        tree.getOrCreateChildWithName("Categories", nullptr);
-        tree.getOrCreateChildWithName("Keywords", nullptr);
-        
-        if(tree.getNumChildren() > 2)
+        if(tree.getType().toString() == "FX")
         {
-            initialTreeFormat(tree);
+            tree.getOrCreateChildWithName("Categories", nullptr);
+            tree.getOrCreateChildWithName("Keywords", nullptr);
+        
+            if(tree.getNumChildren() > 2)
+            {
+                initialTreeFormat(tree);
+            }
         }
     });
 }

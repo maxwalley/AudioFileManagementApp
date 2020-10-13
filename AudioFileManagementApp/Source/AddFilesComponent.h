@@ -13,7 +13,7 @@
 #include <JuceHeader.h>
 #include "AddFilesListModel.h"
 #include "AddFilesParameterEditor.h"
-#include "FXDataFormatter.h"
+#include "DataTreeManager.h"
 
 //==============================================================================
 /*
@@ -34,7 +34,7 @@ class AddFilesComponent  : public Component,
 {
 public:
     
-    AddFilesComponent(ValueTree currentData, FXDataFormatter* dataFormatter = nullptr);
+    AddFilesComponent(ValueTree currentData);
     ~AddFilesComponent() override;
 
     void paint(Graphics& g) override;
@@ -104,6 +104,7 @@ private:
     bool filesDragged;
     
     TextButton addFilesButton;
+    TextButton removeFilesButton;
     
     std::vector<Listener*> listeners;
     

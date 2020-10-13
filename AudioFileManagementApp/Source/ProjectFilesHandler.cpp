@@ -125,7 +125,7 @@ XmlElement ProjectFilesHandler::createDefaultXmlForFile (ProjectFile typeOfXmlTo
     {
         XmlElement tree("Data");
         tree.createNewChildElement("Categories");
-        tree.createNewChildElement("FXList");
+        tree.createNewChildElement("FXList")->createNewChildElement("NewFiles");
         
         XmlElement* test = tree.getChildByName("Categories");
         
@@ -209,8 +209,10 @@ std::optional<ValueTree> ProjectFilesHandler::parseAndCheckFile (ProjectFile typ
     
     //Project Data XML
     
-    //if it doesnt have these two children
-    if(!treeFromData.getChildWithName("Categories").isValid() || !treeFromData.getChildWithName("FXList").isValid())
+    ValueTree fxTree = treeFromData.getChildWithName("FXList");
+    
+    //if it doesnt have these children
+    if(!treeFromData.getChildWithName("Categories").isValid() || !fxTree.isValid() || !fxTree.getChildWithName("NewFiles").isValid())
     {
         return std::nullopt;
     }
