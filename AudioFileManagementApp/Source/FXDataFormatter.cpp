@@ -20,12 +20,26 @@ FXDataFormatter::~FXDataFormatter()
     
 }
 
+void FXDataFormatter::deleteCategoryFromAllFX(const var& idNumToDelete)
+{
+    std::for_each(managedTree.begin(), managedTree.end(), [&idNumToDelete](ValueTree fx)
+    {
+        ValueTree categoryList = fx.getChildWithName("Categories");
+        ValueTree childToDelete = categoryList.getChildWithProperty("IDNum", idNumToDelete);
+        
+        if(childToDelete.isValid())
+        {
+            categoryList.removeChild(childToDelete, nullptr);
+        }
+    });
+}
+
 void FXDataFormatter::childTreeAdded(ValueTree& parent, ValueTree& newChild)
 {
     if(newChild.getType().toString() == "FX")
     {
-        newChild.addChild(ValueTree("Categories"), -1, nullptr);
-        newChild.addChild(ValueTree("Keywords"), -1, nullptr);
+        newChild.getOrCreateChildWithName("Categories", nullptr);
+        newChild.getOrCreateChildWithName("Keywords", nullptr);
     }
 }
 

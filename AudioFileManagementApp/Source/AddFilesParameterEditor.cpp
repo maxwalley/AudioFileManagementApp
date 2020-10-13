@@ -447,24 +447,36 @@ void AddFilesParameterEditor::deleteSelectedItems()
         return;
     }
     
-    if(AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Are you sure you want to delete this category?", "Deleting these categories will delete them from any associated fx. Are you sure you want to continue?", "Continue", "Cancel", this))
+    String alertTitle;
+    String alertMessage;
+    
+    if(numSelected > 1)
     {
-    /*
-    for(int i = 0; i < numSelected; i++)
+        alertTitle = "Are you sure you want to delete these categories?";
+        alertMessage = "Deleting these selected categories will delete them from any associated fx. Are you sure you want to continue?";
+    }
+    //Just on item selected
+    else
     {
-        ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(categoryViewer.getSelectedItem(i));
-        
-        if(selectedItem == nullptr)
+        alertTitle = "Are you sure you want to delete this category?";
+        alertMessage = "Deleting the selected category will delete it from any associated fx. Are you sure you want to continue?";
+    }
+    
+    if(AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, alertTitle, alertMessage, "Continue", "Cancel", this))
+    {
+        for(int i = 0; i < numSelected; i++)
         {
-            continue;
+            ValueTreeItem* selectedItem = dynamic_cast<ValueTreeItem*>(categoryViewer.getSelectedItem(i));
+        
+            if(selectedItem == nullptr)
+            {
+                continue;
+            }
+        
+            ValueTree selectedTree = selectedItem->getShownTree();
+        
+            selectedTree.getParent().removeChild(selectedTree, nullptr);
         }
-        
-        ValueTree selectedTree = selectedItem->getShownTree();
-        
-        selectedTree.getParent().removeChild(selectedTree, nullptr);
-        
-    }*/
-        DBG("This is not yet implemented - categories will need to be removed from fx");
     }
 }
 

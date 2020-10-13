@@ -21,7 +21,8 @@
 
 class AudioFileManagementApplication  : public juce::JUCEApplication,
                                         public juce::ActionListener,
-                                        public AddFilesComponent::Listener
+                                        public AddFilesComponent::Listener,
+                                        public ValueTree::Listener
 {
 public:
     
@@ -70,4 +71,6 @@ private:
     void actionListenerCallback(const juce::String& message) override;
     
     void filesAdded(int numFilesAdded) override;
+    
+    void valueTreeChildRemoved(ValueTree& parent, ValueTree& removedChild, int index) override;
 };

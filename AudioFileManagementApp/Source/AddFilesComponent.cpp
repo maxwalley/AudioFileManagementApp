@@ -182,7 +182,7 @@ void AddFilesComponent::buttonClicked(Button* button)
                 file.removeChild(listBoxData, nullptr);
                 
                 newFileData.removeChild(file, nullptr);
-                dataToAddTo.appendChild(file, nullptr);
+                dataToAddTo.getChildWithName("FXList").appendChild(file, nullptr);
                 
                 i--;
             }
