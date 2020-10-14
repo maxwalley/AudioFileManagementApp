@@ -11,11 +11,11 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "ValueTreeManager.h"
+#include "ValueTreeIDNumberer.h"
 
 using namespace juce;
 
-class FXDataFormatter  : public ValueTreeManager
+class FXDataFormatter  : public ValueTreeIDNumberer
 {
 public:
     FXDataFormatter(ValueTree fxData);

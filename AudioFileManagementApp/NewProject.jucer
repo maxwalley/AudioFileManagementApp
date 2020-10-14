@@ -35,10 +35,10 @@
             file="Source/AddFilesParameterEditor.h"/>
       <FILE id="IioZKH" name="AddFilesParameterEditor.cpp" compile="1" resource="0"
             file="Source/AddFilesParameterEditor.cpp"/>
-      <FILE id="g1FemP" name="ValueTreeManager.h" compile="0" resource="0"
-            file="Source/ValueTreeManager.h"/>
-      <FILE id="PmtGJI" name="ValueTreeManager.cpp" compile="1" resource="0"
-            file="Source/ValueTreeManager.cpp"/>
+      <FILE id="g1FemP" name="ValueTreeIDNumberer.h" compile="0" resource="0"
+            file="Source/ValueTreeIDNumberer.h"/>
+      <FILE id="PmtGJI" name="ValueTreeIDNumberer.cpp" compile="1" resource="0"
+            file="Source/ValueTreeIDNumberer.cpp"/>
       <FILE id="gKrSoI" name="CategoryDataFormatter.h" compile="0" resource="0"
             file="Source/CategoryDataFormatter.h"/>
       <FILE id="U7BO2N" name="CategoryDataFormatter.cpp" compile="1" resource="0"

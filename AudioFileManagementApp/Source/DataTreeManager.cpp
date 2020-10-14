@@ -24,7 +24,7 @@ void DataTreeManager::valueTreeChildRemoved(ValueTree& parent, ValueTree& childW
 {
     if((parent == managedTree.getChildWithName("Categories") || parent.isAChildOf(managedTree.getChildWithName("Categories"))) && childWhichHasBeenRemoved.getType().toString() == "Category")
     {
-        std::vector<var> idsToDelete = ValueTreeManager::getAllIDNumsInTree(childWhichHasBeenRemoved, "Category");
+        std::vector<var> idsToDelete = ValueTreeIDNumberer::getAllIDNumsInTree(childWhichHasBeenRemoved, "Category");
         
         fxFormatter.deleteCategoriesFromAllFX(idsToDelete);
     }
@@ -32,8 +32,6 @@ void DataTreeManager::valueTreeChildRemoved(ValueTree& parent, ValueTree& childW
     else if((parent == managedTree.getChildWithName("FXList") || parent.isAChildOf(managedTree.getChildWithName("FXList"))) && childWhichHasBeenRemoved.getType().toString() == "FX")
     {
         const var moving = childWhichHasBeenRemoved.getProperty("Moving");
-        
-        DBG(int(moving));
         
         if(!moving.isVoid() || moving)
         {
@@ -43,5 +41,23 @@ void DataTreeManager::valueTreeChildRemoved(ValueTree& parent, ValueTree& childW
         
         //If we're not moving
         categoryFormatter.deleteFXIDsFromAllCategories(childWhichHasBeenRemoved.getProperty("IDNum"));
+    }
+}
+
+void DataTreeManager::valueTreePropertyChanged(ValueTree& treeWhosePropertyChanged, const Identifier& property)
+{
+    if(treeWhosePropertyChanged.getType().toString() == "ControlList" && treeWhosePropertyChanged.getParent() == managedTree)
+    {
+        if(property.toString() == "DelNewFX")
+        {
+            if(treeWhosePropertyChanged.getProperty(property))
+            {
+                DBG("WIPING NEW");
+                
+                managedTree.getChildWithName("FXList").getChildWithName("NewFiles").removeAllChildren(nullptr);
+                
+                treeWhosePropertyChanged.setPropertyExcludingListener(this, property, false, nullptr);
+            }
+        }
     }
 }

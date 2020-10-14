@@ -25,9 +25,12 @@ public:
 protected:
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
     
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyChanged, const Identifier& property) override;
+    
     ValueTree getManagedTree() const;
     
 private:
+
     ValueTree managedTree;
     
     FXDataFormatter fxFormatter;

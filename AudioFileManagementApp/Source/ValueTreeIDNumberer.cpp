@@ -8,21 +8,21 @@
   ==============================================================================
 */
 
-#include "ValueTreeManager.h"
+#include "ValueTreeIDNumberer.h"
 
-ValueTreeManager::ValueTreeManager(ValueTree treeToManage, Identifier childrenToAddIDsTo, bool addIDsRecursively)  : managedTree(treeToManage), childIDToAddNumsTo(childrenToAddIDsTo), addRecursively(addIDsRecursively), nextHighestIDNum(findNextHighestIDNum(managedTree))
+ValueTreeIDNumberer::ValueTreeIDNumberer(ValueTree treeToManage, Identifier childrenToAddIDsTo, bool addIDsRecursively)  : managedTree(treeToManage), childIDToAddNumsTo(childrenToAddIDsTo), addRecursively(addIDsRecursively), nextHighestIDNum(findNextHighestIDNum(managedTree))
 {
     managedTree.addListener(this);
     
     addIDNumToTree(managedTree);
 }
 
-ValueTreeManager::~ValueTreeManager()
+ValueTreeIDNumberer::~ValueTreeIDNumberer()
 {
     
 }
 
-ValueTree ValueTreeManager::getTreeWithID(var idToLookFor, ValueTree treeToSearch) const
+ValueTree ValueTreeIDNumberer::getTreeWithID(var idToLookFor, ValueTree treeToSearch) const
 {
     ValueTree treeBeingSearched = treeToSearch;
     ValueTree foundTree;
@@ -63,7 +63,7 @@ ValueTree ValueTreeManager::getTreeWithID(var idToLookFor, ValueTree treeToSearc
     return foundTree;
 }
 
-std::vector<var> ValueTreeManager::getAllIDNumsInTree(const ValueTree& treeToSearch, Identifier treesToGetIDsFrom, bool searchRootTreeForID)
+std::vector<var> ValueTreeIDNumberer::getAllIDNumsInTree(const ValueTree& treeToSearch, Identifier treesToGetIDsFrom, bool searchRootTreeForID)
 {
     std::vector<var> listOfIDs;
     
@@ -85,14 +85,14 @@ std::vector<var> ValueTreeManager::getAllIDNumsInTree(const ValueTree& treeToSea
     return listOfIDs;
 }
 
-void ValueTreeManager::valueTreeChildAdded(ValueTree& parent, ValueTree& childThatHasBeenAdded)
+void ValueTreeIDNumberer::valueTreeChildAdded(ValueTree& parent, ValueTree& childThatHasBeenAdded)
 {
     addIDNumToTree(childThatHasBeenAdded);
     
     childTreeAdded(parent, childThatHasBeenAdded);
 }
 
-int ValueTreeManager::findNextHighestIDNum(ValueTree treeToSearch) const
+int ValueTreeIDNumberer::findNextHighestIDNum(ValueTree treeToSearch) const
 {
     int highest = 0;
     
@@ -122,7 +122,7 @@ int ValueTreeManager::findNextHighestIDNum(ValueTree treeToSearch) const
     return highest + 1;
 }
 
-void ValueTreeManager::addIDNumToTree(ValueTree treeToAddTo)
+void ValueTreeIDNumberer::addIDNumToTree(ValueTree treeToAddTo)
 {
     if(!childIDToAddNumsTo.isValid() || childIDToAddNumsTo == treeToAddTo.getType())
     {

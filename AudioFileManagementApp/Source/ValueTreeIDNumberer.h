@@ -14,11 +14,11 @@
 
 using namespace juce;
 
-class ValueTreeManager   :  public ValueTree::Listener
+class ValueTreeIDNumberer   :  public ValueTree::Listener
 {
 public:
-    ValueTreeManager(ValueTree treeToManage, Identifier childrenToAddIDsTo = Identifier(), bool addIDsRecursively = false);
-    ~ValueTreeManager();
+    ValueTreeIDNumberer(ValueTree treeToManage, Identifier childrenToAddIDsTo = Identifier(), bool addIDsRecursively = false);
+    ~ValueTreeIDNumberer();
     
     //Leave treeToSearch blank if you want it to iterate through the managed tree
     ValueTree getTreeWithID(var idToLookFor, ValueTree treeToSearch = ValueTree()) const;

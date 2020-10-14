@@ -44,6 +44,8 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
 
 void AudioFileManagementApplication::shutdown()
 {
+    dataTree.getChildWithName("ControlList").setProperty("DelNewFX", true, nullptr);
+    
     mainWindow = nullptr;
     
     MenuBarModel::setMacMainMenu(nullptr);
@@ -68,6 +70,8 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
         if(addFilesWindow == nullptr)
         {
             addFilesWindow = std::make_unique<ComponentWindow>("Select Files to Add", Colours::silver, DocumentWindow::allButtons);
+            
+            addFilesWindow->addActionListener(this);
         }
         
         if(addFilesWindow->getContentComponent() == nullptr)
@@ -86,6 +90,11 @@ void AudioFileManagementApplication::actionListenerCallback(const juce::String& 
                 addFilesWindow->setVisible(true);
             }
         }
+    }
+    
+    else if(message == "Select Files to Add_closed")
+    {
+        dataTree.getChildWithName("ControlList").setProperty("DelNewFX", true, nullptr);
     }
 }
 

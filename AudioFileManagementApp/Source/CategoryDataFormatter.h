@@ -11,11 +11,11 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "ValueTreeManager.h"
+#include "ValueTreeIDNumberer.h"
 
 using namespace juce;
 
-class CategoryDataFormatter  : public ValueTreeManager
+class CategoryDataFormatter  : public ValueTreeIDNumberer
 {
 public:
     CategoryDataFormatter(ValueTree dataTree);

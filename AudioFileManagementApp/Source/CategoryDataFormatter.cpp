@@ -10,7 +10,7 @@
 
 #include "CategoryDataFormatter.h"
 
-CategoryDataFormatter::CategoryDataFormatter(ValueTree dataTree)  : ValueTreeManager(dataTree, "Category", true)
+CategoryDataFormatter::CategoryDataFormatter(ValueTree dataTree)  : ValueTreeIDNumberer(dataTree, "Category", true)
 {
     initialFormatOfTree();
 }
