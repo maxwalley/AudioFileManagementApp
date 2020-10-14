@@ -26,7 +26,12 @@ ValueTreeItem::~ValueTreeItem()
 
 bool ValueTreeItem::mightContainSubItems()
 {
-    return tree.getNumChildren();
+    if(tree.getNumChildren() == 1)
+    {
+        return false;
+    }
+    
+    return true;
 }
 
 String ValueTreeItem::getUniqueName() const
