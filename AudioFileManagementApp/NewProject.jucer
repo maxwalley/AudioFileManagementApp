@@ -5,6 +5,10 @@
               jucerFormatVersion="1" companyName="MaxWalley" cppLanguageStandard="17">
   <MAINGROUP id="GMNK9R" name="AudioFileManagementApp">
     <GROUP id="{F4ECE5FB-9E10-906A-D50C-A8A1C4A2419E}" name="Source">
+      <FILE id="TJa2PB" name="HierarchicalThumbnailBrowser.h" compile="0"
+            resource="0" file="Source/HierarchicalThumbnailBrowser.h"/>
+      <FILE id="VZMtla" name="HierarchicalThumbnailBrowser.cpp" compile="1"
+            resource="0" file="Source/HierarchicalThumbnailBrowser.cpp"/>
       <FILE id="XmlfoU" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="v503Nc" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="krqd3V" name="MainComponent.cpp" compile="1" resource="0"

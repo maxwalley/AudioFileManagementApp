@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "HierarchicalThumbnailBrowser.h"
 
 //==============================================================================
 
@@ -8,7 +9,7 @@ class MainComponent  : public juce::Component
 {
 public:
     //==============================================================================
-    MainComponent();
+    MainComponent(const ValueTree& dataToDisplay);
     ~MainComponent() override;
 
     //==============================================================================
@@ -17,5 +18,7 @@ public:
 
 private:
 
+    HierarchicalThumbnailBrowser browser;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

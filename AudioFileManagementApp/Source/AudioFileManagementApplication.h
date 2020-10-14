@@ -57,6 +57,7 @@ public:
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
+    std::unique_ptr<MainComponent> mainComponent;
     MenuModel menu;
     ProjectFilesHandler fileHandler;
     std::unique_ptr<ComponentWindow> addFilesWindow;

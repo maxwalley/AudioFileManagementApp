@@ -32,14 +32,15 @@ bool AudioFileManagementApplication::moreThanOneInstanceAllowed()
 
 void AudioFileManagementApplication::initialise (const juce::String& commandLine)
 {
+    dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
+    dataManager = std::make_unique<DataTreeManager>(dataTree);
+    
+    mainComponent = std::make_unique<MainComponent>(dataTree);
     mainWindow.reset (new MainWindow (getApplicationName()));
+    mainWindow->setContentNonOwned(mainComponent.get(), true);
     
     menu.addActionListener(this);
     MenuBarModel::setMacMainMenu(&menu);
-    
-    dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
-    
-    dataManager = std::make_unique<DataTreeManager>(dataTree);
 }
 
 void AudioFileManagementApplication::shutdown()
@@ -114,7 +115,6 @@ void AudioFileManagementApplication::filesAdded(int numFilesAdded)
 AudioFileManagementApplication::MainWindow::MainWindow(juce::String name) : DocumentWindow (name, juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId), DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar (true);
-     setContentOwned (new MainComponent(), true);
 
     #if JUCE_IOS || JUCE_ANDROID
      setFullScreen (true);
