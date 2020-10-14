@@ -123,17 +123,32 @@ bool AddFilesComponent::processAndAddFiles(const Array<File>& filesToAdd)
     FileArraySorter sorter;
     newFiles.sort(sorter);
     
-    addFiles(newFiles);
+    if(addFiles(newFiles) == 0)
+    {
+        return false;
+    }
     
     return true;
 }
 
-void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
+int AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
 {
-    std::for_each(filesToAdd.begin(), filesToAdd.end(), [this](const File& file)
+    int numFilesAdded = 0;
+    
+    for(const File& file : filesToAdd)
     {
+        const String path = file.getFullPathName();
+        
+        if(checkIfFileAlreadyExistsInDatabase(path))
+        {
+            if(!AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "File Already Exists in DataBase", file.getFileName() + " already exists in the database are you sure you want to add it again?", "Add", "Do Not Add", this))
+            {
+                continue;
+            }
+        }
+        
         ValueTree fileTree("FX");
-        fileTree.setProperty("Path", file.getFullPathName(), nullptr);
+        fileTree.setProperty("Path", path, nullptr);
         
         ValueTree listBoxDisplayData("ListBoxData");
         listBoxDisplayData.setProperty("Selected", false, nullptr);
@@ -142,9 +157,13 @@ void AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
         fileTree.appendChild(listBoxDisplayData, nullptr);
         
         newFileData.addChild(fileTree, -1, nullptr);
-    });
+        
+        numFilesAdded++;
+    }
     
     fileList.updateContent();
+    
+    return numFilesAdded;
 }
 
 int AddFilesComponent::getNumberOfFilesBeingAdded() const
@@ -751,4 +770,38 @@ void AddFilesComponent::checkAndUpdateIfFXIsReady(ValueTree treeToCheck)
     {
         listBoxDataTree.setProperty("Completed", true, nullptr);
     }
+}
+
+bool AddFilesComponent::checkIfFileAlreadyExistsInDatabase(const String& pathToLookFor) const
+{
+    ValueTree fxList = dataToAddTo.getChildWithName("FXList");
+    
+    if(std::any_of(fxList.begin(), fxList.end(), [&pathToLookFor](const ValueTree& fx)
+    {
+        if(fx.getType().toString() == "FX")
+        {
+            if(fx.getProperty("Path").toString() == pathToLookFor)
+            {
+                return true;
+            }
+        }
+        return false;
+    }))
+    {
+        return true;
+    }
+    
+    ValueTree newFilesList = fxList.getChildWithName("NewFiles");
+    
+    return std::any_of(newFilesList.begin(), newFilesList.end(), [&pathToLookFor](const ValueTree& fx)
+    {
+        if(fx.getType().toString() == "FX")
+        {
+            if(fx.getProperty("Path").toString() == pathToLookFor)
+            {
+                return true;
+            }
+        }
+        return false;
+    });
 }

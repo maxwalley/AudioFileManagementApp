@@ -52,8 +52,6 @@ void DataTreeManager::valueTreePropertyChanged(ValueTree& treeWhosePropertyChang
         {
             if(treeWhosePropertyChanged.getProperty(property))
             {
-                DBG("WIPING NEW");
-                
                 managedTree.getChildWithName("FXList").getChildWithName("NewFiles").removeAllChildren(nullptr);
                 
                 treeWhosePropertyChanged.setPropertyExcludingListener(this, property, false, nullptr);

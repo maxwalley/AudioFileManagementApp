@@ -42,7 +42,9 @@ public:
     void resized() override;
     
     bool processAndAddFiles(const Array<File>& filesToAdd);
-    void addFiles(const Array<File>& filesToAdd);
+    
+    //Returns number of files added
+    int addFiles(const Array<File>& filesToAdd);
     
     int getNumberOfFilesBeingAdded() const;
     
@@ -93,6 +95,8 @@ private:
     
     //treeToCheck should have both a Keywords child and a ListBoxData Child
     void checkAndUpdateIfFXIsReady(ValueTree treeToCheck);
+    
+    bool checkIfFileAlreadyExistsInDatabase(const String& pathToLookFor) const;
     
     ValueTree dataToAddTo;
     ValueTree newFileData;
