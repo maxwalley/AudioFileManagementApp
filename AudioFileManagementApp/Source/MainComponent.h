@@ -5,6 +5,23 @@
 
 //==============================================================================
 
+class FXAndCategoryBrowserItem  : ThumbnailBrowserItem
+{
+public:
+    FXAndCategoryBrowserItem(const ValueTree& treeToDisplay);
+    ~FXAndCategoryBrowserItem();
+    
+private:
+    
+    bool canBeOpened() override;
+    
+    void paintItem(Graphics& g, int width, int height) override;
+    
+    ValueTree displayedTree;
+};
+
+//==============================================================================
+
 class MainComponent  : public juce::Component
 {
 public:

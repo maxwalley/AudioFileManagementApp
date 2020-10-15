@@ -11,6 +11,11 @@
 #include <JuceHeader.h>
 #include "HierarchicalThumbnailBrowser.h"
 
+ThumbnailBrowserItem::ThumbnailBrowserItem()  : isOpen(false)
+{
+    
+}
+
 ThumbnailBrowserItem::~ThumbnailBrowserItem()
 {
     
@@ -23,7 +28,13 @@ void ThumbnailBrowserItem::addNewSubItem(ThumbnailBrowserItem* newSubItem)
 
 void ThumbnailBrowserItem::removeSubItem(ThumbnailBrowserItem* itemToRemove)
 {
-    std::remove(subItems.begin(), subItems.end(), itemToRemove);
+    std::for_each(subItems.begin(), subItems.end(), [this, &itemToRemove](const std::unique_ptr<ThumbnailBrowserItem>& item)
+    {
+        if(item.get() == itemToRemove)
+        {
+            std::remove(subItems.begin(), subItems.end(), item);
+        }
+    });
 }
 
 void ThumbnailBrowserItem::removeSubItem(int indexToRemove)
@@ -34,7 +45,7 @@ void ThumbnailBrowserItem::removeSubItem(int indexToRemove)
         return;
     }
     
-    std::remove(subItems.begin(), subItems.end(), subItems[indexToRemove]);
+    subItems.erase(subItems.begin() + indexToRemove);
 }
 
 ThumbnailBrowserItem* ThumbnailBrowserItem::getItemAtIndex(int index) const
@@ -54,9 +65,10 @@ int ThumbnailBrowserItem::getNumberOfSubItems() const
 
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : currentDisplayedItem(nullptr), contentDisplayer(*this)
 {
-    
+    addAndMakeVisible(viewport);
+    viewport.setViewedComponent(&contentDisplayer, false);
 }
 
 HierarchicalThumbnailBrowser::~HierarchicalThumbnailBrowser()
@@ -66,17 +78,60 @@ HierarchicalThumbnailBrowser::~HierarchicalThumbnailBrowser()
 
 void HierarchicalThumbnailBrowser::setRootItem(ThumbnailBrowserItem* newRootItem)
 {
+    if(currentDisplayedItem == newRootItem)
+    {
+        return;
+    }
+    
     currentDisplayedItem = newRootItem;
     
     //Update display
+    resized();
+}
+
+ThumbnailBrowserItem* HierarchicalThumbnailBrowser::getRootItem() const
+{
+    return currentDisplayedItem;
 }
 
 void HierarchicalThumbnailBrowser::paint (juce::Graphics& g)
 {
-    g.fillAll(Colours::green);
+    
 }
 
 void HierarchicalThumbnailBrowser::resized()
 {
+    viewport.setBounds(getLocalBounds());
+    
+    if(currentDisplayedItem == nullptr)
+    {
+        return;
+    }
+}
 
+HierarchicalThumbnailBrowser::Displayer::Displayer(HierarchicalThumbnailBrowser& ownerToDisplay)  : owner(ownerToDisplay)
+{
+    calculateAndResize();
+}
+
+HierarchicalThumbnailBrowser::Displayer::~Displayer()
+{
+    calculateAndResize();
+}
+
+//Calculating and setting the size in this method rather than the resized() method means that the resized() method does not need to be called multiple times which means that each subcomponents resized will not be called over and over
+void HierarchicalThumbnailBrowser::Displayer::calculateAndResize()
+{
+    //take the subitems from owner.getRootItem() aswell as owner.getItemSize() and work out size based on that. This is currently a placeholder.
+    setSize(200, 1000);
+}
+
+void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
+{
+    g.fillAll(Colours::green);
+}
+
+void HierarchicalThumbnailBrowser::Displayer::resized()
+{
+    DBG("Resizing");
 }

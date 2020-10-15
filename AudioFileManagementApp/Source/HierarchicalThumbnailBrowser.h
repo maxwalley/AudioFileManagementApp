@@ -17,12 +17,15 @@
 */
 using namespace juce;
 
-class ThumbnailBrowserItem
+class ThumbnailBrowserItem  : public Component
 {
 public:
+    ThumbnailBrowserItem();
     virtual ~ThumbnailBrowserItem();
     
     virtual bool canBeOpened()=0;
+    
+    virtual void paintItem(Graphics& g, int width, int height){};
     
     void addNewSubItem(ThumbnailBrowserItem* newSubItem);
     void removeSubItem(ThumbnailBrowserItem* itemToRemove);
@@ -34,11 +37,13 @@ public:
     
 private:
     std::vector<std::unique_ptr<ThumbnailBrowserItem>> subItems;
+    
+    bool isOpen;
 };
 
 
 
-class HierarchicalThumbnailBrowser  : public juce::Component
+class HierarchicalThumbnailBrowser  : public Component
 {
 public:
     HierarchicalThumbnailBrowser();
@@ -46,13 +51,33 @@ public:
     
     //Passing nullptr will clear the browser
     void setRootItem(ThumbnailBrowserItem* newRootItem);
+    
+    ThumbnailBrowserItem* getRootItem() const;
 
 private:
     
-    void paint (juce::Graphics&) override;
+    void paint (juce::Graphics& g) override;
     void resized() override;
     
+    class Displayer  : public Component
+    {
+    public:
+        Displayer(HierarchicalThumbnailBrowser& ownerToDisplay);
+        ~Displayer();
+        
+        void calculateAndResize();
+        
+    private:
+        void paint (juce::Graphics& g) override;
+        void resized() override;
+        
+        HierarchicalThumbnailBrowser& owner;
+    };
+    
     ThumbnailBrowserItem* currentDisplayedItem;
+    
+    Displayer contentDisplayer;
+    Viewport viewport;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierarchicalThumbnailBrowser)
 };
