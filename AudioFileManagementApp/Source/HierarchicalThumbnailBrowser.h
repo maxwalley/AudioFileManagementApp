@@ -46,13 +46,28 @@ private:
 class HierarchicalThumbnailBrowser  : public Component
 {
 public:
+    
+    struct Size
+    {
+        int width;
+        int height;
+    };
+    
     HierarchicalThumbnailBrowser();
     ~HierarchicalThumbnailBrowser() override;
     
     //Passing nullptr will clear the browser
     void setRootItem(ThumbnailBrowserItem* newRootItem);
-    
     ThumbnailBrowserItem* getRootItem() const;
+    
+    void setItemSize(const Size& newSize);
+    Size getItemSize() const;
+    
+    void setHorizontalGapBetweenItems(int newGap);
+    int getHorizontalGapBetweenItems() const;
+    
+    void setVerticalGapBetweenItems(int newGap);
+    int getVerticalGapBetweenItems() const;
 
 private:
     
@@ -71,6 +86,8 @@ private:
         void paint (juce::Graphics& g) override;
         void resized() override;
         
+        int calculateHowManyItemsPerRow() const;
+        
         HierarchicalThumbnailBrowser& owner;
     };
     
@@ -78,6 +95,10 @@ private:
     
     Displayer contentDisplayer;
     Viewport viewport;
+    
+    Size itemSize;
+    int horizontalGapBetweenItems = 10;
+    int verticalGapBetweenItems = 15;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierarchicalThumbnailBrowser)
 };

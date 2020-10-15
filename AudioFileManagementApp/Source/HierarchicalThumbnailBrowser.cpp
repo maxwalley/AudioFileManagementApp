@@ -65,7 +65,7 @@ int ThumbnailBrowserItem::getNumberOfSubItems() const
 
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : currentDisplayedItem(nullptr), contentDisplayer(*this)
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : currentDisplayedItem(nullptr), contentDisplayer(*this), itemSize{50, 50}
 {
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentDisplayer, false);
@@ -94,6 +94,37 @@ ThumbnailBrowserItem* HierarchicalThumbnailBrowser::getRootItem() const
     return currentDisplayedItem;
 }
 
+void HierarchicalThumbnailBrowser::setItemSize(const Size& newSize)
+{
+    itemSize = newSize;
+    //Repaint content
+}
+
+HierarchicalThumbnailBrowser::Size HierarchicalThumbnailBrowser::getItemSize() const
+{
+    return itemSize;
+}
+
+void HierarchicalThumbnailBrowser::setHorizontalGapBetweenItems(int newGap)
+{
+    horizontalGapBetweenItems = newGap;
+}
+
+int HierarchicalThumbnailBrowser::getHorizontalGapBetweenItems() const
+{
+    return horizontalGapBetweenItems;
+}
+
+void HierarchicalThumbnailBrowser::setVerticalGapBetweenItems(int newGap)
+{
+    verticalGapBetweenItems = newGap;
+}
+
+int HierarchicalThumbnailBrowser::getVerticalGapBetweenItems() const
+{
+    return verticalGapBetweenItems;
+}
+
 void HierarchicalThumbnailBrowser::paint (juce::Graphics& g)
 {
     
@@ -101,29 +132,33 @@ void HierarchicalThumbnailBrowser::paint (juce::Graphics& g)
 
 void HierarchicalThumbnailBrowser::resized()
 {
-    viewport.setBounds(getLocalBounds());
-    
     if(currentDisplayedItem == nullptr)
     {
-        return;
+        //return;
     }
+    
+    viewport.setBounds(getLocalBounds());
+    contentDisplayer.calculateAndResize();
 }
 
 HierarchicalThumbnailBrowser::Displayer::Displayer(HierarchicalThumbnailBrowser& ownerToDisplay)  : owner(ownerToDisplay)
 {
-    calculateAndResize();
+    
 }
 
 HierarchicalThumbnailBrowser::Displayer::~Displayer()
 {
-    calculateAndResize();
+    
 }
 
 //Calculating and setting the size in this method rather than the resized() method means that the resized() method does not need to be called multiple times which means that each subcomponents resized will not be called over and over
 void HierarchicalThumbnailBrowser::Displayer::calculateAndResize()
 {
-    //take the subitems from owner.getRootItem() aswell as owner.getItemSize() and work out size based on that. This is currently a placeholder.
-    setSize(200, 1000);
+    int numRows = ceil(float(owner.getRootItem()->getNumberOfSubItems()) / float(calculateHowManyItemsPerRow()));
+    
+    int componentHeight = (numRows + 1) * (owner.getVerticalGapBetweenItems() + owner.getItemSize().height) + owner.getVerticalGapBetweenItems();
+    
+    setSize(owner.getWidth() - 8, componentHeight);
 }
 
 void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
@@ -134,4 +169,9 @@ void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
 void HierarchicalThumbnailBrowser::Displayer::resized()
 {
     DBG("Resizing");
+}
+
+int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const
+{
+    return floor((getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems));
 }
