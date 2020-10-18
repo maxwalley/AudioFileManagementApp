@@ -65,10 +65,18 @@ int ThumbnailBrowserItem::getNumberOfSubItems() const
 
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : currentDisplayedItem(nullptr), contentDisplayer(*this), itemSize{50, 50}
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : currentDisplayedItem(nullptr), contentDisplayer(*this), itemSize{50, 50}, testButton("Test")
 {
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentDisplayer, false);
+    
+    //Default colours
+    setColour(backgroundColourId, Colours::silver);
+    setColour(titleBarBackgroundColourId, Colours::darkgrey);
+    setColour(titleBarTextColourId, Colours::black);
+    
+    addAndMakeVisible(testButton);
+    testButton.addListener(this);
 }
 
 HierarchicalThumbnailBrowser::~HierarchicalThumbnailBrowser()
@@ -125,20 +133,67 @@ int HierarchicalThumbnailBrowser::getVerticalGapBetweenItems() const
     return verticalGapBetweenItems;
 }
 
+void HierarchicalThumbnailBrowser::setTitleBarHeight(int newHeight)
+{
+    titleBarHeight = newHeight;
+}
+
+int HierarchicalThumbnailBrowser::getTitleBarHeight() const
+{
+    return titleBarHeight;
+}
+
+void HierarchicalThumbnailBrowser::setTitleBarText(const String& newText)
+{
+    if(titleBarText != newText)
+    {
+        titleBarText = newText;
+        repaint(0, 0, getWidth(), titleBarHeight);
+    }
+}
+
+String HierarchicalThumbnailBrowser::getTitleBarText() const
+{
+    return titleBarText;
+}
+
+void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)
+{
+    g.setColour(findColour(titleBarBackgroundColourId));
+    g.fillRect(0, 0, width, height);
+    
+    g.setColour(findColour(titleBarTextColourId));
+    g.drawText(titleBarText, 5, 0, width, height, Justification::left);
+}
+
+void HierarchicalThumbnailBrowser::colourChanged()
+{
+    repaint();
+}
+
 void HierarchicalThumbnailBrowser::paint (juce::Graphics& g)
 {
+    g.fillAll(findColour(backgroundColourId));
     
+    paintTitleBar(g, getWidth(), titleBarHeight);
 }
 
 void HierarchicalThumbnailBrowser::resized()
 {
+    testButton.setBounds(0, getHeight() - 20, 100, 20);
+    
     if(currentDisplayedItem == nullptr)
     {
-        //return;
+        return;
     }
     
     viewport.setBounds(getLocalBounds());
     contentDisplayer.calculateAndResize();
+}
+
+void HierarchicalThumbnailBrowser::buttonClicked(Button* button)
+{
+    
 }
 
 HierarchicalThumbnailBrowser::Displayer::Displayer(HierarchicalThumbnailBrowser& ownerToDisplay)  : owner(ownerToDisplay)

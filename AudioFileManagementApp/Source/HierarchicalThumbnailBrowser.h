@@ -43,7 +43,8 @@ private:
 
 
 
-class HierarchicalThumbnailBrowser  : public Component
+class HierarchicalThumbnailBrowser  : public Component,
+                                      public Button::Listener
 {
 public:
     
@@ -51,6 +52,13 @@ public:
     {
         int width;
         int height;
+    };
+    
+    enum ColourIds
+    {
+        backgroundColourId = 0,
+        titleBarBackgroundColourId = 1,
+        titleBarTextColourId = 2
     };
     
     HierarchicalThumbnailBrowser();
@@ -68,11 +76,23 @@ public:
     
     void setVerticalGapBetweenItems(int newGap);
     int getVerticalGapBetweenItems() const;
-
-private:
     
+    void setTitleBarHeight(int newHeight);
+    int getTitleBarHeight() const;
+    
+    void setTitleBarText(const String& newText);
+    String getTitleBarText() const;
+
+protected:
+    virtual void paintTitleBar(Graphics& g, int width, int height);
+    
+    virtual void colourChanged() override;
+    
+private:
     void paint (juce::Graphics& g) override;
     void resized() override;
+    
+    void buttonClicked(Button* button) override;
     
     class Displayer  : public Component
     {
@@ -99,6 +119,10 @@ private:
     Size itemSize;
     int horizontalGapBetweenItems = 10;
     int verticalGapBetweenItems = 15;
+    int titleBarHeight = 22;
+    String titleBarText = "";
+    
+    TextButton testButton;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierarchicalThumbnailBrowser)
 };
