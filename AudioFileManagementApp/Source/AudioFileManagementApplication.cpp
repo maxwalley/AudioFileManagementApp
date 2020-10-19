@@ -35,7 +35,7 @@ void AudioFileManagementApplication::initialise (const juce::String& commandLine
     dataTree = fileHandler.getTreeFromFile(ProjectFilesHandler::ProjectFile::projectData);
     dataManager = std::make_unique<DataTreeManager>(dataTree);
     
-    mainComponent = std::make_unique<MainComponent>(dataTree);
+    mainComponent = std::make_unique<MainComponent>(dataTree, *dataManager);
     mainWindow.reset (new MainWindow (getApplicationName()));
     mainWindow->setContentNonOwned(mainComponent.get(), true);
     

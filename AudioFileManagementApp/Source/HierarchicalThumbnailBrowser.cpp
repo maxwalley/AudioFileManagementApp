@@ -48,6 +48,11 @@ void ThumbnailBrowserItem::removeSubItem(int indexToRemove)
     subItems.erase(subItems.begin() + indexToRemove);
 }
 
+void ThumbnailBrowserItem::clearSubItems()
+{
+    subItems.clear();
+}
+
 ThumbnailBrowserItem* ThumbnailBrowserItem::getItemAtIndex(int index) const
 {
     if(index < getNumberOfSubItems())
@@ -84,14 +89,15 @@ HierarchicalThumbnailBrowser::~HierarchicalThumbnailBrowser()
     
 }
 
-void HierarchicalThumbnailBrowser::setRootItem(ThumbnailBrowserItem* newRootItem)
+void HierarchicalThumbnailBrowser::setRootItem(std::unique_ptr<ThumbnailBrowserItem> newRootItem)
 {
     if(currentDisplayedItem == newRootItem)
     {
         return;
     }
     
-    currentDisplayedItem = newRootItem;
+    currentDisplayedItem.reset(newRootItem.release());
+    currentDisplayedItem->openessChanged(true);
     
     //Update display
     resized();
@@ -99,7 +105,7 @@ void HierarchicalThumbnailBrowser::setRootItem(ThumbnailBrowserItem* newRootItem
 
 ThumbnailBrowserItem* HierarchicalThumbnailBrowser::getRootItem() const
 {
-    return currentDisplayedItem;
+    return currentDisplayedItem.get();
 }
 
 void HierarchicalThumbnailBrowser::setItemSize(const Size& newSize)
@@ -157,6 +163,11 @@ String HierarchicalThumbnailBrowser::getTitleBarText() const
     return titleBarText;
 }
 
+void HierarchicalThumbnailBrowser::update()
+{
+    contentDisplayer.calculateAndResize();
+}
+
 void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)
 {
     g.setColour(findColour(titleBarBackgroundColourId));
@@ -187,7 +198,7 @@ void HierarchicalThumbnailBrowser::resized()
         return;
     }
     
-    viewport.setBounds(getLocalBounds());
+    viewport.setBounds(0, titleBarHeight, getWidth(), getHeight() - titleBarHeight);
     contentDisplayer.calculateAndResize();
 }
 
@@ -209,7 +220,9 @@ HierarchicalThumbnailBrowser::Displayer::~Displayer()
 //Calculating and setting the size in this method rather than the resized() method means that the resized() method does not need to be called multiple times which means that each subcomponents resized will not be called over and over
 void HierarchicalThumbnailBrowser::Displayer::calculateAndResize()
 {
-    int numRows = ceil(float(owner.getRootItem()->getNumberOfSubItems()) / float(calculateHowManyItemsPerRow()));
+    numItemsPerRow = calculateHowManyItemsPerRow();
+    
+    int numRows = ceil(float(owner.getRootItem()->getNumberOfSubItems()) / float(numItemsPerRow));
     
     int componentHeight = (numRows + 1) * (owner.getVerticalGapBetweenItems() + owner.getItemSize().height) + owner.getVerticalGapBetweenItems();
     
@@ -218,15 +231,39 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize()
 
 void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
 {
-    g.fillAll(Colours::green);
+    
 }
 
 void HierarchicalThumbnailBrowser::Displayer::resized()
 {
-    DBG("Resizing");
+    ThumbnailBrowserItem* root = owner.getRootItem();
+    
+    int rowIndex = 0;
+    
+    Point<int> currentOrigin(0, 0);
+    
+    for(int i = 0; i < root->getNumberOfSubItems(); i++)
+    {
+        //Start of new row
+        if(i + 1 % numItemsPerRow == 1)
+        {
+            currentOrigin.setY(rowIndex * owner.getItemSize().height + owner.getVerticalGapBetweenItems());
+            ++rowIndex;
+            
+            currentOrigin.setX(owner.getHorizontalGapBetweenItems());
+        }
+        else
+        {
+            int newX = currentOrigin.getX() + owner.getItemSize().width + owner.getHorizontalGapBetweenItems();
+            currentOrigin.setX(newX);
+        }
+        
+        addAndMakeVisible(root->getItemAtIndex(i));
+        root->getItemAtIndex(i)->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
+    }
 }
 
 int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const
 {
-    return floor((getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems));
+    return floor((owner.getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems));
 }

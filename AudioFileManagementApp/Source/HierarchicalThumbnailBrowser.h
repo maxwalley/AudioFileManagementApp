@@ -25,20 +25,26 @@ public:
     
     virtual bool canBeOpened()=0;
     
-    virtual void paintItem(Graphics& g, int width, int height){};
-    
     void addNewSubItem(ThumbnailBrowserItem* newSubItem);
     void removeSubItem(ThumbnailBrowserItem* itemToRemove);
     void removeSubItem(int indexToRemove);
+    void clearSubItems();
     
     //If index out of range will return nullptr
     ThumbnailBrowserItem* getItemAtIndex(int index) const;
     int getNumberOfSubItems() const;
     
 private:
+    virtual void paint(Graphics& g) override{};
+    
+    //True = open
+    virtual void openessChanged(bool newState){};
+    
     std::vector<std::unique_ptr<ThumbnailBrowserItem>> subItems;
     
     bool isOpen;
+    
+    friend class HierarchicalThumbnailBrowser;
 };
 
 
@@ -65,7 +71,7 @@ public:
     ~HierarchicalThumbnailBrowser() override;
     
     //Passing nullptr will clear the browser
-    void setRootItem(ThumbnailBrowserItem* newRootItem);
+    void setRootItem(std::unique_ptr<ThumbnailBrowserItem> newRootItem);
     ThumbnailBrowserItem* getRootItem() const;
     
     void setItemSize(const Size& newSize);
@@ -82,6 +88,8 @@ public:
     
     void setTitleBarText(const String& newText);
     String getTitleBarText() const;
+    
+    void update();
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);
@@ -109,9 +117,10 @@ private:
         int calculateHowManyItemsPerRow() const;
         
         HierarchicalThumbnailBrowser& owner;
+        int numItemsPerRow = 0;
     };
     
-    ThumbnailBrowserItem* currentDisplayedItem;
+    std::unique_ptr<ThumbnailBrowserItem> currentDisplayedItem;
     
     Displayer contentDisplayer;
     Viewport viewport;

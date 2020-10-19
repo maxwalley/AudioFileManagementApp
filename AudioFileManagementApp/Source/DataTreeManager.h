@@ -19,8 +19,17 @@ using namespace juce;
 class DataTreeManager : ValueTree::Listener
 {
 public:
+    
+    enum class TreeType
+    {
+        FXTree,
+        CategoryTree
+    };
+    
     DataTreeManager(ValueTree& treeToManage);
     ~DataTreeManager();
+    
+    ValueTreeIDNumberer* getTreeFormatter(TreeType typeOfFormatter);
     
 protected:
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;

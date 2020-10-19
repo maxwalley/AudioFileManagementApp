@@ -20,6 +20,18 @@ DataTreeManager::~DataTreeManager()
     
 }
 
+ValueTreeIDNumberer* DataTreeManager::getTreeFormatter(TreeType typeOfFormatter)
+{
+    switch (typeOfFormatter)
+    {
+        case TreeType::FXTree:
+            return  &fxFormatter;
+            
+        case TreeType::CategoryTree:
+            return &categoryFormatter;
+    }
+}
+
 void DataTreeManager::valueTreeChildRemoved(ValueTree& parent, ValueTree& childWhichHasBeenRemoved, int index)
 {
     if((parent == managedTree.getChildWithName("Categories") || parent.isAChildOf(managedTree.getChildWithName("Categories"))) && childWhichHasBeenRemoved.getType().toString() == "Category")
