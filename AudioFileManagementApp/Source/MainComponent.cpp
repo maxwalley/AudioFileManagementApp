@@ -28,8 +28,10 @@ bool FXAndCategoryBrowserItem::canBeOpened()
 
 void FXAndCategoryBrowserItem::paint(Graphics& g)
 {
-    g.setColour(Colours::orange);
+    g.setColour(Colours::black);
     g.drawRect(0, 0, getWidth(), getHeight());
+    
+    g.drawText(displayedTree.getProperty("Name"), 0, getHeight() - 10, getWidth(), 10, Justification::centred);
 }
 
 void FXAndCategoryBrowserItem::openessChanged(bool newState)
@@ -104,9 +106,4 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized()
 {
     browser.setBounds(0, 40, getWidth(), getHeight() - 80);
-}
-
-void MainComponent::refreshBrowser()
-{
-    browser.update();
 }

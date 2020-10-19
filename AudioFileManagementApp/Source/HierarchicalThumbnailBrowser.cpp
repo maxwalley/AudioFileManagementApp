@@ -23,7 +23,10 @@ ThumbnailBrowserItem::~ThumbnailBrowserItem()
 
 void ThumbnailBrowserItem::addNewSubItem(ThumbnailBrowserItem* newSubItem)
 {
-    subItems.push_back(std::unique_ptr<ThumbnailBrowserItem>(newSubItem));
+    std::unique_ptr<ThumbnailBrowserItem> newItem(newSubItem);
+    newItem->parent = this;
+    
+    subItems.push_back(std::move(newItem));
 }
 
 void ThumbnailBrowserItem::removeSubItem(ThumbnailBrowserItem* itemToRemove)
@@ -68,6 +71,39 @@ int ThumbnailBrowserItem::getNumberOfSubItems() const
     return subItems.size();
 }
 
+void ThumbnailBrowserItem::setOwner(HierarchicalThumbnailBrowser* newOwner)
+{
+    owner = newOwner;
+}
+
+HierarchicalThumbnailBrowser* ThumbnailBrowserItem::getOwner() const
+{
+    return owner;
+}
+
+void ThumbnailBrowserItem::mouseDoubleClick(const MouseEvent& event)
+{
+    itemDoubleClicked(event);
+    
+    if(canBeOpened())
+    {
+        int thisIndex = parent->getIndexOfSubItem(this);
+        owner->setRootItem(std::move(subItems[thisIndex]));
+    }
+}
+
+int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndexOf) const
+{
+    for(int i = 0; i < getNumberOfSubItems(); i++)
+    {
+        if(subItems[i].get() == itemToGetIndexOf)
+        {
+            return i;
+        }
+    }
+    
+    return -1;
+}
 
 //==============================================================================
 HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : currentDisplayedItem(nullptr), contentDisplayer(*this), itemSize{50, 50}, testButton("Test")
@@ -98,6 +134,7 @@ void HierarchicalThumbnailBrowser::setRootItem(std::unique_ptr<ThumbnailBrowserI
     
     currentDisplayedItem.reset(newRootItem.release());
     currentDisplayedItem->openessChanged(true);
+    currentDisplayedItem->setOwner(this);
     
     //Update display
     resized();
@@ -161,11 +198,6 @@ void HierarchicalThumbnailBrowser::setTitleBarText(const String& newText)
 String HierarchicalThumbnailBrowser::getTitleBarText() const
 {
     return titleBarText;
-}
-
-void HierarchicalThumbnailBrowser::update()
-{
-    contentDisplayer.calculateAndResize();
 }
 
 void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)

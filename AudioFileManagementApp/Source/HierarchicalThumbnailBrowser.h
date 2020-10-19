@@ -17,6 +17,8 @@
 */
 using namespace juce;
 
+class HierarchicalThumbnailBrowser;
+
 class ThumbnailBrowserItem  : public Component
 {
 public:
@@ -34,15 +36,27 @@ public:
     ThumbnailBrowserItem* getItemAtIndex(int index) const;
     int getNumberOfSubItems() const;
     
+    void setOwner(HierarchicalThumbnailBrowser* newOwner);
+    HierarchicalThumbnailBrowser* getOwner() const;
+    
 private:
     virtual void paint(Graphics& g) override{};
     
     //True = open
     virtual void openessChanged(bool newState){};
     
+    virtual void itemDoubleClicked(const MouseEvent& event){};
+    
+    void mouseDoubleClick(const MouseEvent& event) override;
+    
+    int getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndexOf) const;
+    
     std::vector<std::unique_ptr<ThumbnailBrowserItem>> subItems;
     
     bool isOpen;
+    
+    HierarchicalThumbnailBrowser* owner = nullptr;
+    ThumbnailBrowserItem* parent = nullptr;
     
     friend class HierarchicalThumbnailBrowser;
 };
@@ -88,8 +102,6 @@ public:
     
     void setTitleBarText(const String& newText);
     String getTitleBarText() const;
-    
-    void update();
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);
