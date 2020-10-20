@@ -24,15 +24,14 @@ ValueTreeIDNumberer::~ValueTreeIDNumberer()
 
 ValueTree ValueTreeIDNumberer::getTreeWithID(var idToLookFor, ValueTree treeToSearch) const
 {
-    ValueTree treeBeingSearched = treeToSearch;
     ValueTree foundTree;
 
-    if(!treeBeingSearched.isValid())
+    if(!treeToSearch.isValid())
     {
-        treeBeingSearched = managedTree;
+        treeToSearch = managedTree;
     }
     
-    for(const ValueTree& tree : foundTree)
+    for(const ValueTree& tree : treeToSearch)
     {
         if(childIDToAddNumsTo.isValid() && tree.getType() != childIDToAddNumsTo)
         {

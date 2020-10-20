@@ -31,6 +31,18 @@ private:
 
 //==============================================================================
 
+//Browser with some custom mouse controls
+class FXAndCategoryBrowser  : public HierarchicalThumbnailBrowser
+{
+public:
+    FXAndCategoryBrowser();
+    ~FXAndCategoryBrowser();
+    
+private:
+    void mouseDown(const MouseEvent& event) override;
+    
+};
+
 class MainComponent  : public juce::Component
 {
 public:
@@ -46,7 +58,7 @@ public:
 
 private:
 
-    HierarchicalThumbnailBrowser browser;
+    FXAndCategoryBrowser browser;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

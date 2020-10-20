@@ -25,6 +25,7 @@ void ThumbnailBrowserItem::addNewSubItem(ThumbnailBrowserItem* newSubItem)
 {
     std::unique_ptr<ThumbnailBrowserItem> newItem(newSubItem);
     newItem->parent = this;
+    newItem->owner = owner;
     
     subItems.push_back(std::move(newItem));
 }
@@ -87,8 +88,7 @@ void ThumbnailBrowserItem::mouseDoubleClick(const MouseEvent& event)
     
     if(canBeOpened())
     {
-        int thisIndex = parent->getIndexOfSubItem(this);
-        owner->setRootItem(std::move(subItems[thisIndex]));
+        owner->setDisplayedItem(this);
     }
 }
 
@@ -106,7 +106,7 @@ int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndex
 }
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : currentDisplayedItem(nullptr), contentDisplayer(*this), itemSize{50, 50}, testButton("Test")
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), itemSize{50, 50}, testButton("Test")
 {
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentDisplayer, false);
@@ -127,14 +127,14 @@ HierarchicalThumbnailBrowser::~HierarchicalThumbnailBrowser()
 
 void HierarchicalThumbnailBrowser::setRootItem(std::unique_ptr<ThumbnailBrowserItem> newRootItem)
 {
-    if(currentDisplayedItem == newRootItem)
+    if(rootItem == newRootItem)
     {
         return;
     }
     
-    currentDisplayedItem.reset(newRootItem.release());
-    currentDisplayedItem->openessChanged(true);
-    currentDisplayedItem->setOwner(this);
+    rootItem.reset(newRootItem.release());
+    rootItem->setOwner(this);
+    setDisplayedItem(rootItem.get());
     
     //Update display
     resized();
@@ -142,13 +142,34 @@ void HierarchicalThumbnailBrowser::setRootItem(std::unique_ptr<ThumbnailBrowserI
 
 ThumbnailBrowserItem* HierarchicalThumbnailBrowser::getRootItem() const
 {
-    return currentDisplayedItem.get();
+    return rootItem.get();
+}
+
+void HierarchicalThumbnailBrowser::setDisplayedItem(ThumbnailBrowserItem* newItemToDisplay)
+{
+    if(newItemToDisplay != currentDisplayedItem)
+    {
+        if(currentDisplayedItem != nullptr)
+        {
+            currentDisplayedItem->openessChanged(false);
+        }
+        
+        currentDisplayedItem = newItemToDisplay;
+        currentDisplayedItem->openessChanged(true);
+        contentDisplayer.calculateAndResize(true);
+    }
+}
+
+ThumbnailBrowserItem* HierarchicalThumbnailBrowser::getDisplayedItem() const
+{
+    return currentDisplayedItem;
 }
 
 void HierarchicalThumbnailBrowser::setItemSize(const Size& newSize)
 {
     itemSize = newSize;
     //Repaint content
+    contentDisplayer.calculateAndResize(false);
 }
 
 HierarchicalThumbnailBrowser::Size HierarchicalThumbnailBrowser::getItemSize() const
@@ -231,7 +252,7 @@ void HierarchicalThumbnailBrowser::resized()
     }
     
     viewport.setBounds(0, titleBarHeight, getWidth(), getHeight() - titleBarHeight);
-    contentDisplayer.calculateAndResize();
+    contentDisplayer.calculateAndResize(false);
 }
 
 void HierarchicalThumbnailBrowser::buttonClicked(Button* button)
@@ -249,16 +270,29 @@ HierarchicalThumbnailBrowser::Displayer::~Displayer()
     
 }
 
-//Calculating and setting the size in this method rather than the resized() method means that the resized() method does not need to be called multiple times which means that each subcomponents resized will not be called over and over
-void HierarchicalThumbnailBrowser::Displayer::calculateAndResize()
+//Calculating and setting the size in this method rather than the resized() method means that the resized() method does not need to be called multiple times which means that recalculation will not occur multiple times
+void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshItemList)
 {
+    if(refreshItemList)
+    {
+        refreshChildrenComponents();
+    }
+    
     numItemsPerRow = calculateHowManyItemsPerRow();
     
-    int numRows = ceil(float(owner.getRootItem()->getNumberOfSubItems()) / float(numItemsPerRow));
+    int numRows = ceil(float(owner.getDisplayedItem()->getNumberOfSubItems()) / float(numItemsPerRow));
     
     int componentHeight = (numRows + 1) * (owner.getVerticalGapBetweenItems() + owner.getItemSize().height) + owner.getVerticalGapBetweenItems();
     
+    int oldHeight = getHeight();
+    
     setSize(owner.getWidth() - 8, componentHeight);
+    
+    //Forces a resize if one won't have occured because height is the same and components need to be redrawn
+    if(oldHeight == getHeight() && refreshItemList)
+    {
+        resized();
+    }
 }
 
 void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
@@ -268,13 +302,11 @@ void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
 
 void HierarchicalThumbnailBrowser::Displayer::resized()
 {
-    ThumbnailBrowserItem* root = owner.getRootItem();
-    
     int rowIndex = 0;
     
     Point<int> currentOrigin(0, 0);
     
-    for(int i = 0; i < root->getNumberOfSubItems(); i++)
+    for(int i = 0; i < getNumChildComponents(); i++)
     {
         //Start of new row
         if(i + 1 % numItemsPerRow == 1)
@@ -290,12 +322,23 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
             currentOrigin.setX(newX);
         }
         
-        addAndMakeVisible(root->getItemAtIndex(i));
-        root->getItemAtIndex(i)->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
+        getChildComponent(i)->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
     }
 }
 
 int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const
 {
     return floor((owner.getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems));
+}
+
+void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
+{
+    removeAllChildren();
+    
+    ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
+    
+    for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
+    {
+        addAndMakeVisible(displayedItem->getItemAtIndex(i));
+    }
 }

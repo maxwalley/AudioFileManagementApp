@@ -31,7 +31,14 @@ void FXAndCategoryBrowserItem::paint(Graphics& g)
     g.setColour(Colours::black);
     g.drawRect(0, 0, getWidth(), getHeight());
     
-    g.drawText(displayedTree.getProperty("Name"), 0, getHeight() - 10, getWidth(), 10, Justification::centred);
+    if(displayedTree.getType().toString() == "Category")
+    {
+        g.drawText(displayedTree.getProperty("Name"), 0, getHeight() - 10, getWidth(), 10, Justification::centred);
+    }
+    else if (displayedTree.getType().toString() == "FX")
+    {
+        g.drawText(displayedTree.getProperty("Path"), 0, getHeight() - 10, getWidth(), 10, Justification::centred);
+    }
 }
 
 void FXAndCategoryBrowserItem::openessChanged(bool newState)
@@ -84,11 +91,28 @@ void FXAndCategoryBrowserItem::lookUpAndAddFXAsChild(const ValueTree& fxToLookUp
 }
 
 //==============================================================================
-MainComponent::MainComponent(const ValueTree& dataToDisplay, DataTreeManager& dataTreeManager) : browser()
+FXAndCategoryBrowser::FXAndCategoryBrowser()
+{
+    
+}
+
+FXAndCategoryBrowser::~FXAndCategoryBrowser()
+{
+    
+}
+
+void FXAndCategoryBrowser::mouseDown(const MouseEvent& event)
+{
+    DBG("TEST");
+}
+
+//==============================================================================
+MainComponent::MainComponent(const ValueTree& dataToDisplay, DataTreeManager& dataTreeManager)
 {
     setSize (600, 400);
     
     addAndMakeVisible(browser);
+    browser.addMouseListener(this, true);
     
     browser.setRootItem(std::make_unique<FXAndCategoryBrowserItem>(dataToDisplay.getChildWithName("Categories"), dataTreeManager));
 }

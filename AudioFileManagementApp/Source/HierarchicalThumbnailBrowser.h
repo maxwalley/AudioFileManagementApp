@@ -88,6 +88,9 @@ public:
     void setRootItem(std::unique_ptr<ThumbnailBrowserItem> newRootItem);
     ThumbnailBrowserItem* getRootItem() const;
     
+    void setDisplayedItem(ThumbnailBrowserItem* newItemToDisplay);
+    ThumbnailBrowserItem* getDisplayedItem() const;
+    
     void setItemSize(const Size& newSize);
     Size getItemSize() const;
     
@@ -120,19 +123,22 @@ private:
         Displayer(HierarchicalThumbnailBrowser& ownerToDisplay);
         ~Displayer();
         
-        void calculateAndResize();
+        void calculateAndResize(bool refreshChildList);
         
     private:
         void paint (juce::Graphics& g) override;
         void resized() override;
         
         int calculateHowManyItemsPerRow() const;
+        void refreshChildrenComponents();
         
         HierarchicalThumbnailBrowser& owner;
         int numItemsPerRow = 0;
     };
     
-    std::unique_ptr<ThumbnailBrowserItem> currentDisplayedItem;
+    std::unique_ptr<ThumbnailBrowserItem> rootItem;
+    
+    ThumbnailBrowserItem* currentDisplayedItem = nullptr;
     
     Displayer contentDisplayer;
     Viewport viewport;
