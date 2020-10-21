@@ -106,6 +106,18 @@ FXAndCategoryBrowser::~FXAndCategoryBrowser()
     
 }
 
+void FXAndCategoryBrowser::paintOverChildren(Graphics& g)
+{
+    if(filesBeingDragged)
+    {
+        g.setColour(Colour::fromFloatRGBA(192.0, 192.0, 192.0, 0.7));
+        g.fillRect(0, getTitleBarHeight(), getWidth(), getHeight() - getTitleBarHeight());
+        g.setColour(Colours::black);
+        g.setFont(Font(18));
+        g.drawText("Drop Files To Add", 0, (getHeight() - getTitleBarHeight()) / 2 - 9, getWidth(), 18, Justification::centred | Justification::verticallyCentred);
+    }
+}
+
 void FXAndCategoryBrowser::mouseDown(const MouseEvent& event)
 {
     if(event.mods.isRightButtonDown())
@@ -117,6 +129,36 @@ void FXAndCategoryBrowser::mouseDown(const MouseEvent& event)
         menu.show();
         update();
     }
+}
+
+bool FXAndCategoryBrowser::isInterestedInFileDrag(const StringArray& files)
+{
+    return true;
+}
+
+void FXAndCategoryBrowser::fileDragMove(const StringArray& files, int x, int y)
+{
+    //Bounds not working
+    if(x > getTitleBarHeight())
+    {
+        filesBeingDragged = true;
+    }
+    else
+    {
+        filesBeingDragged = false;
+    }
+    repaint();
+}
+
+void FXAndCategoryBrowser::fileDragExit(const StringArray& files)
+{
+    filesBeingDragged = false;
+    repaint();
+}
+
+void FXAndCategoryBrowser::filesDropped(const StringArray &files, int x, int y)
+{
+    filesBeingDragged = false;
 }
 
 void FXAndCategoryBrowser::addCategoryToDisplayedTree()

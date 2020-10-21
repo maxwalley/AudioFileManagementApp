@@ -19,7 +19,8 @@ using namespace juce;
 
 class HierarchicalThumbnailBrowser;
 
-class ThumbnailBrowserItem  : public Component
+class ThumbnailBrowserItem  : public Component,
+                              public DragAndDropTarget
 {
 public:
     ThumbnailBrowserItem();
@@ -47,7 +48,13 @@ private:
     
     virtual void itemDoubleClicked(const MouseEvent& event){};
     
+    void mouseDrag(const MouseEvent& event) override;
     void mouseDoubleClick(const MouseEvent& event) override;
+    
+    bool isInterestedInDragSource(const SourceDetails& details) override;
+    virtual void itemDragEnter(const SourceDetails& details) override;
+    virtual void itemDragExit(const SourceDetails& details) override;
+    void itemDropped(const SourceDetails& details) override;
     
     int getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndexOf) const;
     
@@ -64,7 +71,8 @@ private:
 
 
 class HierarchicalThumbnailBrowser  : public Component,
-                                      public Button::Listener
+                                      public Button::Listener,
+                                      public DragAndDropContainer
 {
 public:
     
@@ -119,7 +127,8 @@ private:
     
     void buttonClicked(Button* button) override;
     
-    class Displayer  : public Component
+    class Displayer  : public Component,
+                       public DragAndDropTarget
     {
     public:
         Displayer(HierarchicalThumbnailBrowser& ownerToDisplay);
@@ -130,6 +139,9 @@ private:
     private:
         void paint (juce::Graphics& g) override;
         void resized() override;
+        
+        bool isInterestedInDragSource(const SourceDetails &dragSourceDetails) override;
+        void itemDropped(const SourceDetails &dragSourceDetails) override;
         
         int calculateHowManyItemsPerRow() const;
         void refreshChildrenComponents();

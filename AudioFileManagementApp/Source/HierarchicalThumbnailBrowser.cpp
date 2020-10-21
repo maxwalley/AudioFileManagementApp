@@ -82,6 +82,16 @@ HierarchicalThumbnailBrowser* ThumbnailBrowserItem::getOwner() const
     return owner;
 }
 
+void ThumbnailBrowserItem::mouseDrag(const MouseEvent& event)
+{
+    DragAndDropContainer* dragContainer = DragAndDropContainer::findParentDragContainerFor(this);
+    
+    if(dragContainer != nullptr)
+    {
+        dragContainer->startDragging("ThumbnailItem", this);
+    }
+}
+
 void ThumbnailBrowserItem::mouseDoubleClick(const MouseEvent& event)
 {
     itemDoubleClicked(event);
@@ -90,6 +100,26 @@ void ThumbnailBrowserItem::mouseDoubleClick(const MouseEvent& event)
     {
         owner->setDisplayedItem(this);
     }
+}
+
+bool ThumbnailBrowserItem::isInterestedInDragSource(const SourceDetails& details)
+{
+    return details.description == "ThumbnailItem";
+}
+
+void ThumbnailBrowserItem::itemDragEnter(const SourceDetails& details)
+{
+    
+}
+
+void ThumbnailBrowserItem::itemDragExit(const SourceDetails& details)
+{
+    
+}
+
+void ThumbnailBrowserItem::itemDropped(const SourceDetails& details)
+{
+    DBG("ITEM");
 }
 
 int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndexOf) const
@@ -289,6 +319,11 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
     
     int componentHeight = (numRows + 1) * (owner.getVerticalGapBetweenItems() + owner.getItemSize().height) + owner.getVerticalGapBetweenItems();
     
+    if(componentHeight < owner.getHeight() - owner.getTitleBarHeight())
+    {
+        componentHeight = owner.getHeight() - owner.getTitleBarHeight();
+    }
+    
     int oldHeight = getHeight();
     
     setSize(owner.getWidth() - 8, componentHeight);
@@ -329,6 +364,16 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
         
         getChildComponent(i)->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
     }
+}
+
+bool HierarchicalThumbnailBrowser::Displayer::isInterestedInDragSource(const SourceDetails &dragSourceDetails)
+{
+    return dragSourceDetails.description == "ThumbnailItem";
+}
+
+void HierarchicalThumbnailBrowser::Displayer::itemDropped(const SourceDetails &dragSourceDetails)
+{
+    DBG("DISPLAYER");
 }
 
 int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const

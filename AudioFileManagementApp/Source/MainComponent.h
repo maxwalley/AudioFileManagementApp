@@ -34,16 +34,26 @@ private:
 //==============================================================================
 
 //Browser with some custom mouse controls
-class FXAndCategoryBrowser  : public HierarchicalThumbnailBrowser
+class FXAndCategoryBrowser  : public HierarchicalThumbnailBrowser,
+                              public FileDragAndDropTarget
 {
 public:
     FXAndCategoryBrowser();
     ~FXAndCategoryBrowser();
     
 private:
+    void paintOverChildren(Graphics& g) override;
+    
     void mouseDown(const MouseEvent& event) override;
     
+    bool isInterestedInFileDrag(const StringArray& files) override;
+    void fileDragMove(const StringArray& files, int x, int y) override;
+    void fileDragExit(const StringArray& files) override;
+    void filesDropped(const StringArray &files, int x, int y) override;
+    
     void addCategoryToDisplayedTree();
+    
+    bool filesBeingDragged = false;
     
 };
 
