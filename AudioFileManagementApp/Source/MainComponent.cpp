@@ -10,6 +10,11 @@ FXAndCategoryBrowserItem::~FXAndCategoryBrowserItem()
     
 }
 
+ValueTree FXAndCategoryBrowserItem::getDisplayedTree() const
+{
+    return displayedTree;
+}
+
 bool FXAndCategoryBrowserItem::canBeOpened()
 {
     if(displayedTree.getType().toString() == "FX")
@@ -103,7 +108,24 @@ FXAndCategoryBrowser::~FXAndCategoryBrowser()
 
 void FXAndCategoryBrowser::mouseDown(const MouseEvent& event)
 {
-    DBG("TEST");
+    if(event.mods.isRightButtonDown())
+    {
+        PopupMenu menu;
+    
+        menu.addItem("New Sub-Category", std::bind(&FXAndCategoryBrowser::addCategoryToDisplayedTree, this));
+        
+        menu.show();
+        update();
+    }
+}
+
+void FXAndCategoryBrowser::addCategoryToDisplayedTree()
+{
+    FXAndCategoryBrowserItem* displayedItem = dynamic_cast<FXAndCategoryBrowserItem*>(getDisplayedItem());
+    
+    ValueTree treeToAddTo = displayedItem->getDisplayedTree();
+    
+    treeToAddTo.addChild(ValueTree("Category"), -1, nullptr);
 }
 
 //==============================================================================

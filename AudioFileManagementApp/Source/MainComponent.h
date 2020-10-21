@@ -13,6 +13,8 @@ public:
     FXAndCategoryBrowserItem(const ValueTree& treeToDisplay, DataTreeManager& dataManager);
     ~FXAndCategoryBrowserItem();
     
+    ValueTree getDisplayedTree() const;
+    
 private:
     bool canBeOpened() override;
     
@@ -40,6 +42,8 @@ public:
     
 private:
     void mouseDown(const MouseEvent& event) override;
+    
+    void addCategoryToDisplayedTree();
     
 };
 

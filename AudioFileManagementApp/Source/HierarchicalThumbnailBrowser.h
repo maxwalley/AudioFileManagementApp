@@ -105,6 +105,8 @@ public:
     
     void setTitleBarText(const String& newText);
     String getTitleBarText() const;
+    
+    void update();
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);

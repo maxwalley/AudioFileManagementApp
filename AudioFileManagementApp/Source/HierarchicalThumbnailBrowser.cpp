@@ -221,6 +221,11 @@ String HierarchicalThumbnailBrowser::getTitleBarText() const
     return titleBarText;
 }
 
+void HierarchicalThumbnailBrowser::update()
+{
+    contentDisplayer.calculateAndResize(true);
+}
+
 void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)
 {
     g.setColour(findColour(titleBarBackgroundColourId));
