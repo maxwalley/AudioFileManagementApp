@@ -3,6 +3,22 @@
 FXAndCategoryBrowserItem::FXAndCategoryBrowserItem(const ValueTree& treeToDisplay, DataTreeManager& dataManager)  : displayedTree(treeToDisplay), treeManager(dataManager)
 {
     displayedTree.addListener(this);
+    
+    for(const ValueTree& child : displayedTree)
+    {
+        if(child.getType().toString() == "Category")
+        {
+            addNewSubItem(new FXAndCategoryBrowserItem(child, treeManager));
+        }
+        
+        else if(child.getType().toString() == "FXList")
+        {
+            for(const ValueTree& fxChild : child)
+            {
+                addNewSubItem(new FXAndCategoryBrowserItem(lookUpAndFindFX(fxChild), treeManager));
+            }
+        }
+    }
 }
 
 FXAndCategoryBrowserItem::~FXAndCategoryBrowserItem()
@@ -48,51 +64,75 @@ void FXAndCategoryBrowserItem::paint(Graphics& g)
 
 void FXAndCategoryBrowserItem::openessChanged(bool newState)
 {
-    if(newState)
+    
+}
+
+void FXAndCategoryBrowserItem::itemDroppedIntoThisItem(ThumbnailBrowserItem* droppedItem)
+{
+    FXAndCategoryBrowserItem* dropped = dynamic_cast<FXAndCategoryBrowserItem*>(droppedItem);
+    ValueTree droppedTree = dropped->getDisplayedTree();
+    
+    //Makes sure that the dropped tree is not a parent of the displayed tree
+    if(displayedTree.isAChildOf(droppedTree))
     {
-        clearSubItems();
-        
-        for(const ValueTree& child : displayedTree)
-        {
-            if(child.getType().toString() == "Category")
-            {
-                addNewSubItem(new FXAndCategoryBrowserItem(child, treeManager));
-            }
-            
-            else if(child.getType().toString() == "FXList")
-            {
-                for(const ValueTree& fxChild : child)
-                {
-                    lookUpAndAddFXAsChild(fxChild);
-                }
-            }
-        }
+        return;
     }
+    
+    addNewSubItem(dropped->getParent()->removeSubItemAndRelease(dropped));
+    
+    droppedTree.getParent().removeChild(droppedTree, nullptr);
+    displayedTree.addChild(droppedTree, -1, nullptr);
+    
+    getOwner()->update();
 }
 
 void FXAndCategoryBrowserItem::valueTreeChildAdded(ValueTree& parent, ValueTree& childWhichHasBeenAdded)
 {
+    ValueTree treeToAdd;
+    
     //Sub-Cat added
     if(parent == displayedTree && childWhichHasBeenAdded.getType().toString() == "Category")
     {
-        addNewSubItem(new FXAndCategoryBrowserItem(childWhichHasBeenAdded, treeManager));
+        treeToAdd = childWhichHasBeenAdded;
     }
     
     //If it was an FX that was added
     else if(parent == displayedTree.getChildWithName("FXList"))
     {
-        lookUpAndAddFXAsChild(childWhichHasBeenAdded);
+        treeToAdd = lookUpAndFindFX(childWhichHasBeenAdded);
+    }
+    
+    //Checks if this already exists as a sub-Item
+    for(int i = 0; i < getNumberOfSubItems(); i++)
+    {
+        if(dynamic_cast<FXAndCategoryBrowserItem*>(getItemAtIndex(i))->getDisplayedTree() == treeToAdd)
+        {
+            return;
+        }
+    }
+    
+    addNewSubItem(new FXAndCategoryBrowserItem(treeToAdd, treeManager));
+}
+
+void FXAndCategoryBrowserItem::valueTreeChildRemoved(ValueTree& parent, ValueTree& removedChild, int index)
+{
+    for(int i = 0; i < getNumberOfSubItems(); i++)
+    {
+        FXAndCategoryBrowserItem* subItem = dynamic_cast<FXAndCategoryBrowserItem*>(getItemAtIndex(i));
+        
+        if(removedChild == subItem->getDisplayedTree())
+        {
+            removeSubItem(subItem);
+        }
     }
 }
 
-void FXAndCategoryBrowserItem::lookUpAndAddFXAsChild(const ValueTree& fxToLookUp)
+ValueTree FXAndCategoryBrowserItem::lookUpAndFindFX(const ValueTree& fxToLookUp)
 {
     //This should only be passing in trees that are from a categories FX list
     assert(fxToLookUp.getParent().getType().toString() == "FXList");
     
-    ValueTree fxChildToAdd = treeManager.getTreeFormatter(DataTreeManager::TreeType::FXTree)->getTreeWithID(fxToLookUp.getProperty("IDNum"));
-    
-    addNewSubItem(new FXAndCategoryBrowserItem(fxChildToAdd, treeManager));
+    return treeManager.getTreeFormatter(DataTreeManager::TreeType::FXTree)->getTreeWithID(fxToLookUp.getProperty("IDNum"));
 }
 
 //==============================================================================

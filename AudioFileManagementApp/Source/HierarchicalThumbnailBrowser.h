@@ -31,6 +31,9 @@ public:
     void addNewSubItem(ThumbnailBrowserItem* newSubItem);
     void removeSubItem(ThumbnailBrowserItem* itemToRemove);
     void removeSubItem(int indexToRemove);
+    
+    ThumbnailBrowserItem* removeSubItemAndRelease(ThumbnailBrowserItem* itemToRemove);
+    ThumbnailBrowserItem* removeSubItemAndRelease(int indexToRemove);
     void clearSubItems();
     
     //If index out of range will return nullptr
@@ -40,6 +43,8 @@ public:
     void setOwner(HierarchicalThumbnailBrowser* newOwner);
     HierarchicalThumbnailBrowser* getOwner() const;
     
+    ThumbnailBrowserItem* getParent() const;
+    
 private:
     virtual void paint(Graphics& g) override{};
     
@@ -47,6 +52,8 @@ private:
     virtual void openessChanged(bool newState){};
     
     virtual void itemDoubleClicked(const MouseEvent& event){};
+    
+    virtual void itemDroppedIntoThisItem(ThumbnailBrowserItem* itemThatHasBeenDropped){};
     
     void mouseDrag(const MouseEvent& event) override;
     void mouseDoubleClick(const MouseEvent& event) override;
@@ -127,8 +134,7 @@ private:
     
     void buttonClicked(Button* button) override;
     
-    class Displayer  : public Component,
-                       public DragAndDropTarget
+    class Displayer  : public Component
     {
     public:
         Displayer(HierarchicalThumbnailBrowser& ownerToDisplay);
@@ -139,9 +145,6 @@ private:
     private:
         void paint (juce::Graphics& g) override;
         void resized() override;
-        
-        bool isInterestedInDragSource(const SourceDetails &dragSourceDetails) override;
-        void itemDropped(const SourceDetails &dragSourceDetails) override;
         
         int calculateHowManyItemsPerRow() const;
         void refreshChildrenComponents();

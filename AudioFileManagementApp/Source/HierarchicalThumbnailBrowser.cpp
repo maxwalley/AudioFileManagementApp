@@ -52,6 +52,32 @@ void ThumbnailBrowserItem::removeSubItem(int indexToRemove)
     subItems.erase(subItems.begin() + indexToRemove);
 }
 
+ThumbnailBrowserItem* ThumbnailBrowserItem::removeSubItemAndRelease(ThumbnailBrowserItem* itemToRemove)
+{
+    for (int i = 0; i < subItems.size(); i++)
+    {
+        if(itemToRemove == subItems[i].get())
+        {
+            ThumbnailBrowserItem* foundItem = subItems[i].release();
+            subItems.erase(subItems.begin() + i);
+            return foundItem;
+        }
+    }
+    return nullptr;
+}
+
+ThumbnailBrowserItem* ThumbnailBrowserItem::removeSubItemAndRelease(int indexToRemove)
+{
+    if(indexToRemove >= subItems.size() || indexToRemove < 0)
+    {
+        return nullptr;
+    }
+    
+    ThumbnailBrowserItem* itemToRemove = subItems[indexToRemove].release();
+    subItems.erase(subItems.begin() + indexToRemove);
+    return itemToRemove;
+}
+
 void ThumbnailBrowserItem::clearSubItems()
 {
     subItems.clear();
@@ -75,11 +101,22 @@ int ThumbnailBrowserItem::getNumberOfSubItems() const
 void ThumbnailBrowserItem::setOwner(HierarchicalThumbnailBrowser* newOwner)
 {
     owner = newOwner;
+    
+    //Iterator
+    for(int i = 0; i < getNumberOfSubItems(); i++)
+    {
+        getItemAtIndex(i)->setOwner(owner);
+    }
 }
 
 HierarchicalThumbnailBrowser* ThumbnailBrowserItem::getOwner() const
 {
     return owner;
+}
+
+ThumbnailBrowserItem* ThumbnailBrowserItem::getParent() const
+{
+    return parent;
 }
 
 void ThumbnailBrowserItem::mouseDrag(const MouseEvent& event)
@@ -104,7 +141,7 @@ void ThumbnailBrowserItem::mouseDoubleClick(const MouseEvent& event)
 
 bool ThumbnailBrowserItem::isInterestedInDragSource(const SourceDetails& details)
 {
-    return details.description == "ThumbnailItem";
+    return details.description == "ThumbnailItem" && details.sourceComponent.get() != this;
 }
 
 void ThumbnailBrowserItem::itemDragEnter(const SourceDetails& details)
@@ -119,7 +156,12 @@ void ThumbnailBrowserItem::itemDragExit(const SourceDetails& details)
 
 void ThumbnailBrowserItem::itemDropped(const SourceDetails& details)
 {
-    DBG("ITEM");
+    ThumbnailBrowserItem* draggedItem = dynamic_cast<ThumbnailBrowserItem*>(details.sourceComponent.get());
+    
+    if(draggedItem != nullptr)
+    {
+        itemDroppedIntoThisItem(draggedItem);
+    }
 }
 
 int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndexOf) const
@@ -366,16 +408,6 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
     }
 }
 
-bool HierarchicalThumbnailBrowser::Displayer::isInterestedInDragSource(const SourceDetails &dragSourceDetails)
-{
-    return dragSourceDetails.description == "ThumbnailItem";
-}
-
-void HierarchicalThumbnailBrowser::Displayer::itemDropped(const SourceDetails &dragSourceDetails)
-{
-    DBG("DISPLAYER");
-}
-
 int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const
 {
     return floor((owner.getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems));
@@ -384,6 +416,8 @@ int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const
 void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
 {
     removeAllChildren();
+    
+    DBG(owner.getDisplayedItem()->getNumberOfSubItems());
     
     ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
     

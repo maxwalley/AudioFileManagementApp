@@ -20,11 +20,13 @@ private:
     
     void paint(Graphics& g) override;
     void openessChanged(bool newState) override;
+    void itemDroppedIntoThisItem(ThumbnailBrowserItem* droppedItem) override;
     
     void valueTreeChildAdded(ValueTree& parent, ValueTree& childWhichHasBeenAdded) override;
+    void valueTreeChildRemoved(ValueTree& parent, ValueTree& removedChild, int index) override;
     
     //fxToLookUp should be from the FXList of a category
-    void lookUpAndAddFXAsChild(const ValueTree& fxToLookUp);
+    ValueTree lookUpAndFindFX(const ValueTree& fxToLookUp);
     
     ValueTree displayedTree;
     
