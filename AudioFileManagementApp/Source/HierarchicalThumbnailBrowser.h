@@ -118,14 +118,16 @@ public:
     void setTitleBarHeight(int newHeight);
     int getTitleBarHeight() const;
     
-    void setTitleBarText(const String& newText);
-    String getTitleBarText() const;
-    
     void update();
+    
+    //This will mean paintTitleBar does nothing if this is not nullptr
+    void setTitleBarComponent(std::unique_ptr<Component> newTitleBar);
+    Component* getTitleBarComponent() const;
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);
-    
+    virtual void displayedItemChanged(){};
+    virtual void rootItemChanged(){};
     virtual void colourChanged() override;
     
 private:
@@ -164,9 +166,10 @@ private:
     int horizontalGapBetweenItems = 10;
     int verticalGapBetweenItems = 15;
     int titleBarHeight = 22;
-    String titleBarText = "";
     
     TextButton testButton;
+    
+    std::unique_ptr<Component> titleBar = nullptr;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierarchicalThumbnailBrowser)
 };

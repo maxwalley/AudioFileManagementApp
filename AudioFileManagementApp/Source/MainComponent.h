@@ -52,11 +52,24 @@ private:
     void fileDragMove(const StringArray& files, int x, int y) override;
     void fileDragExit(const StringArray& files) override;
     void filesDropped(const StringArray &files, int x, int y) override;
+    void displayedItemChanged() override;
+    void rootItemChanged() override;
     
     void addCategoryToDisplayedTree();
     
     bool filesBeingDragged = false;
     
+    class TitleBar : public Component
+    {
+    public:
+        TitleBar(FXAndCategoryBrowser& titleOwner);
+        ~TitleBar();
+        
+    private:
+        void paint(Graphics& g) override;
+        
+        FXAndCategoryBrowser& owner;
+    };
 };
 
 class MainComponent  : public juce::Component

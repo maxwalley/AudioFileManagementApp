@@ -207,6 +207,7 @@ void HierarchicalThumbnailBrowser::setRootItem(std::unique_ptr<ThumbnailBrowserI
     rootItem.reset(newRootItem.release());
     rootItem->setOwner(this);
     setDisplayedItem(rootItem.get());
+    rootItemChanged();
     
     //Update display
     resized();
@@ -229,6 +230,8 @@ void HierarchicalThumbnailBrowser::setDisplayedItem(ThumbnailBrowserItem* newIte
         currentDisplayedItem = newItemToDisplay;
         currentDisplayedItem->openessChanged(true);
         contentDisplayer.calculateAndResize(true);
+        
+        displayedItemChanged();
     }
 }
 
@@ -279,32 +282,35 @@ int HierarchicalThumbnailBrowser::getTitleBarHeight() const
     return titleBarHeight;
 }
 
-void HierarchicalThumbnailBrowser::setTitleBarText(const String& newText)
-{
-    if(titleBarText != newText)
-    {
-        titleBarText = newText;
-        repaint(0, 0, getWidth(), titleBarHeight);
-    }
-}
-
-String HierarchicalThumbnailBrowser::getTitleBarText() const
-{
-    return titleBarText;
-}
-
 void HierarchicalThumbnailBrowser::update()
 {
     contentDisplayer.calculateAndResize(true);
 }
 
+void HierarchicalThumbnailBrowser::setTitleBarComponent(std::unique_ptr<Component> newTitleBar)
+{
+    titleBar.reset(newTitleBar.release());
+    
+    if(titleBar != nullptr)
+    {
+        addAndMakeVisible(titleBar.get());
+    }
+}
+
+Component* HierarchicalThumbnailBrowser::getTitleBarComponent() const
+{
+    return titleBar.get();
+}
+
 void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)
 {
-    g.setColour(findColour(titleBarBackgroundColourId));
-    g.fillRect(0, 0, width, height);
+    if(titleBar == nullptr)
+    {
+        g.setColour(findColour(titleBarBackgroundColourId));
+        g.fillRect(0, 0, width, height);
     
-    g.setColour(findColour(titleBarTextColourId));
-    g.drawText(titleBarText, 5, 0, width, height, Justification::left);
+        g.setColour(findColour(titleBarTextColourId));
+    }
 }
 
 void HierarchicalThumbnailBrowser::colourChanged()
@@ -330,6 +336,11 @@ void HierarchicalThumbnailBrowser::resized()
     
     viewport.setBounds(0, titleBarHeight, getWidth(), getHeight() - titleBarHeight);
     contentDisplayer.calculateAndResize(false);
+    
+    if(titleBar != nullptr)
+    {
+        titleBar->setBounds(0, 0, getWidth(), titleBarHeight);
+    }
 }
 
 void HierarchicalThumbnailBrowser::buttonClicked(Button* button)
@@ -418,8 +429,6 @@ void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
     removeAllChildren();
     
     ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
-    
-    DBG(displayedItem->getNumberOfSubItems());
     
     for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
     {

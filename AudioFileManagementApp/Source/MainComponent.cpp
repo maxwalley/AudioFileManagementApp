@@ -143,9 +143,10 @@ ValueTree FXAndCategoryBrowserItem::lookUpAndFindFX(const ValueTree& fxToLookUp)
 }
 
 //==============================================================================
+
 FXAndCategoryBrowser::FXAndCategoryBrowser()
 {
-    
+    setTitleBarComponent(std::make_unique<TitleBar>(*this));
 }
 
 FXAndCategoryBrowser::~FXAndCategoryBrowser()
@@ -208,6 +209,16 @@ void FXAndCategoryBrowser::filesDropped(const StringArray &files, int x, int y)
     filesBeingDragged = false;
 }
 
+void FXAndCategoryBrowser::displayedItemChanged()
+{
+    getTitleBarComponent()->repaint();
+}
+
+void FXAndCategoryBrowser::rootItemChanged()
+{
+    getTitleBarComponent()->repaint();
+}
+
 void FXAndCategoryBrowser::addCategoryToDisplayedTree()
 {
     FXAndCategoryBrowserItem* displayedItem = dynamic_cast<FXAndCategoryBrowserItem*>(getDisplayedItem());
@@ -217,7 +228,38 @@ void FXAndCategoryBrowser::addCategoryToDisplayedTree()
     treeToAddTo.addChild(ValueTree("Category"), -1, nullptr);
 }
 
+FXAndCategoryBrowser::TitleBar::TitleBar(FXAndCategoryBrowser& newOwner)  : owner(newOwner)
+{
+    
+}
+
+FXAndCategoryBrowser::TitleBar::~TitleBar()
+{
+    
+}
+
+void FXAndCategoryBrowser::TitleBar::paint(Graphics& g)
+{
+    String textToDisplay;
+        
+    if(owner.getDisplayedItem() == owner.getRootItem())
+    {
+        textToDisplay = "Root";
+    }
+    else
+    {
+        FXAndCategoryBrowserItem* displayedItem = dynamic_cast<FXAndCategoryBrowserItem*>(owner.getDisplayedItem());
+        
+        textToDisplay = displayedItem->getDisplayedTree().getProperty("Name");
+    }
+        
+    DBG(textToDisplay);
+    
+    g.drawText(textToDisplay, 0, 0, getWidth(), getHeight(), Justification::left);
+}
+
 //==============================================================================
+
 MainComponent::MainComponent(const ValueTree& dataToDisplay, DataTreeManager& dataTreeManager)
 {
     setSize (600, 400);
