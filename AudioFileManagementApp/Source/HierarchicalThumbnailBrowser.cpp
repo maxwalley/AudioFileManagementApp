@@ -417,9 +417,9 @@ void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
 {
     removeAllChildren();
     
-    DBG(owner.getDisplayedItem()->getNumberOfSubItems());
-    
     ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
+    
+    DBG(displayedItem->getNumberOfSubItems());
     
     for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
     {

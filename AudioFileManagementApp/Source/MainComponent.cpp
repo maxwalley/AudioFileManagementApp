@@ -90,16 +90,20 @@ void FXAndCategoryBrowserItem::valueTreeChildAdded(ValueTree& parent, ValueTree&
 {
     ValueTree treeToAdd;
     
+    bool add = false;
+    
     //Sub-Cat added
     if(parent == displayedTree && childWhichHasBeenAdded.getType().toString() == "Category")
     {
         treeToAdd = childWhichHasBeenAdded;
+        add = true;
     }
     
     //If it was an FX that was added
     else if(parent == displayedTree.getChildWithName("FXList"))
     {
         treeToAdd = lookUpAndFindFX(childWhichHasBeenAdded);
+        add = true;
     }
     
     //Checks if this already exists as a sub-Item
@@ -107,11 +111,14 @@ void FXAndCategoryBrowserItem::valueTreeChildAdded(ValueTree& parent, ValueTree&
     {
         if(dynamic_cast<FXAndCategoryBrowserItem*>(getItemAtIndex(i))->getDisplayedTree() == treeToAdd)
         {
-            return;
+            add = false;
         }
     }
     
-    addNewSubItem(new FXAndCategoryBrowserItem(treeToAdd, treeManager));
+    if(add)
+    {
+        addNewSubItem(new FXAndCategoryBrowserItem(treeToAdd, treeManager));
+    }
 }
 
 void FXAndCategoryBrowserItem::valueTreeChildRemoved(ValueTree& parent, ValueTree& removedChild, int index)
