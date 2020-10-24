@@ -178,7 +178,7 @@ int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndex
 }
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), itemSize{50, 50}, testButton("Test")
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), itemSize{50, 50}, testButton("Test"), sectionNames("Undefined")
 {
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentDisplayer, false);
@@ -307,6 +307,64 @@ Component* HierarchicalThumbnailBrowser::getTitleBarComponent() const
     return titleBar.get();
 }
 
+void HierarchicalThumbnailBrowser::addSection(const String& sectionName, int index)
+{
+    if(index < 0 || index > sectionNames.size() - 1)
+    {
+        index = sectionNames.size() - 1;
+    }
+    
+    sectionNames.insert(index, sectionName);
+}
+
+void HierarchicalThumbnailBrowser::removeSection(const String& sectionName)
+{
+    if(sectionName != "Undefined")
+    {
+        sectionNames.removeString(sectionName);
+    }
+}
+
+void HierarchicalThumbnailBrowser::removeSection(int indexToRemove)
+{
+    if(indexToRemove < sectionNames.size() - 1)
+    {
+        sectionNames.remove(indexToRemove);
+    }
+}
+
+int HierarchicalThumbnailBrowser::getIndexOfSection(const String& sectionName) const
+{
+    int indexFound = sectionNames.indexOf(sectionName);
+    
+    if(indexFound == sectionNames.size() - 1)
+    {
+        return -1;
+    }
+    
+    return indexFound;
+}
+
+const String HierarchicalThumbnailBrowser::getSectionNameAtIndex(int index) const
+{
+    if(index >= sectionNames.size() - 1)
+    {
+        return String();
+    }
+    
+    return sectionNames[index];
+}
+
+void HierarchicalThumbnailBrowser::setGapBetweenSections(int newGap)
+{
+    gapBetweenSections = newGap;
+}
+
+int HierarchicalThumbnailBrowser::getGapBetweenSections() const
+{
+    return gapBetweenSections;
+}
+
 void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)
 {
     if(titleBar == nullptr)
@@ -328,6 +386,14 @@ void HierarchicalThumbnailBrowser::paint (juce::Graphics& g)
     g.fillAll(findColour(backgroundColourId));
     
     paintTitleBar(g, getWidth(), titleBarHeight);
+    g.setOrigin(0, titleBarHeight);
+    
+    //Needs to call paintSection over and over
+    for(int i = 0; i < sectionNames.size(); i++)
+    {
+        paintSection(g, i);
+        //g.setOrigin(0, THAT SECTIONS HEIGHT)
+    }
 }
 
 void HierarchicalThumbnailBrowser::resized()

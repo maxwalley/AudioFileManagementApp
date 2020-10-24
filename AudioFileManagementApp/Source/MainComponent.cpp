@@ -167,8 +167,8 @@ void FXAndCategoryBrowser::paintOverChildren(Graphics& g)
     
     if(currentPossibleDragPoint.getX() != 0 && currentPossibleDragPoint.getY() != 0)
     {
-        g.setColour(Colours::green);
-        g.drawLine(currentPossibleDragPoint.getX(), currentPossibleDragPoint.getY(), currentPossibleDragPoint.getX(), getHeight(), 1.5);
+        g.setColour(Colours::black);
+        g.drawLine(currentPossibleDragPoint.getX(), currentPossibleDragPoint.getY() + getTitleBarHeight() - getItemSize().height / 4, currentPossibleDragPoint.getX(), currentPossibleDragPoint.getY() + getTitleBarHeight() + getItemSize().height / 4, 1.5);
     }
 }
 
@@ -261,7 +261,12 @@ void FXAndCategoryBrowser::itemDragMove(const SourceDetails& details)
 
 void FXAndCategoryBrowser::itemDropped(const SourceDetails& details)
 {
-    
+    if(currentPossibleDragPoint.getX() != 0 && currentPossibleDragPoint.getY() != 0)
+    {
+        //Rearrange
+        currentPossibleDragPoint.setXY(0, 0);
+        repaint();
+    }
 }
 
 void FXAndCategoryBrowser::addCategoryToDisplayedTree()

@@ -123,9 +123,20 @@ public:
     //This will mean paintTitleBar does nothing if this is not nullptr
     void setTitleBarComponent(std::unique_ptr<Component> newTitleBar);
     Component* getTitleBarComponent() const;
+    
+    //-1 index means added to the end
+    void addSection(const String& sectionName, int index = -1);
+    void removeSection(const String& sectionName);
+    void removeSection(int indexToRemove);
+    int getIndexOfSection(const String& sectionName) const;
+    const String getSectionNameAtIndex(int index) const;
+    
+    void setGapBetweenSections(int newGap);
+    int getGapBetweenSections() const;
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);
+    virtual void paintSection(Graphics& g, int sectionIndex){};
     virtual void displayedItemChanged(){};
     virtual void rootItemChanged(){};
     virtual void colourChanged() override;
@@ -170,6 +181,10 @@ private:
     TextButton testButton;
     
     std::unique_ptr<Component> titleBar = nullptr;
+    
+    StringArray sectionNames;
+    
+    int gapBetweenSections = 20;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierarchicalThumbnailBrowser)
 };
