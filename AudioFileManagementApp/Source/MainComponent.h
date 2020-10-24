@@ -37,7 +37,8 @@ private:
 
 //Browser with some custom mouse controls
 class FXAndCategoryBrowser  : public HierarchicalThumbnailBrowser,
-                              public FileDragAndDropTarget
+                              public FileDragAndDropTarget,
+                              public DragAndDropTarget
 {
 public:
     FXAndCategoryBrowser();
@@ -55,7 +56,16 @@ private:
     void displayedItemChanged() override;
     void rootItemChanged() override;
     
+    bool isInterestedInDragSource(const SourceDetails& details) override;
+    void itemDragMove(const SourceDetails& details) override;
+    void itemDropped(const SourceDetails& details) override;
+    
     void addCategoryToDisplayedTree();
+    
+    //Will return std::nullopt if on an item
+    std::optional<Point<int>> getMiddleOfTwoItems(const Point<int>& referencePoint);
+    
+    Point<int> currentPossibleDragPoint;
     
     bool filesBeingDragged = false;
     

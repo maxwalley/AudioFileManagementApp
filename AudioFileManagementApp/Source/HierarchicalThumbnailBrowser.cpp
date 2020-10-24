@@ -228,7 +228,12 @@ void HierarchicalThumbnailBrowser::setDisplayedItem(ThumbnailBrowserItem* newIte
         }
         
         currentDisplayedItem = newItemToDisplay;
-        currentDisplayedItem->openessChanged(true);
+        
+        if(currentDisplayedItem != nullptr)
+        {
+            currentDisplayedItem->openessChanged(true);
+        }
+        
         contentDisplayer.calculateAndResize(true);
         
         displayedItemChanged();
@@ -399,7 +404,9 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
     
     Point<int> currentOrigin(0, 0);
     
-    for(int i = 0; i < getNumChildComponents(); i++)
+    ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
+    
+    for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
     {
         //Start of new row
         if(i + 1 % numItemsPerRow == 1)
@@ -415,7 +422,7 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
             currentOrigin.setX(newX);
         }
         
-        getChildComponent(i)->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
+        displayedItem->getItemAtIndex(i)->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
     }
 }
 

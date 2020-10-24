@@ -144,7 +144,7 @@ ValueTree FXAndCategoryBrowserItem::lookUpAndFindFX(const ValueTree& fxToLookUp)
 
 //==============================================================================
 
-FXAndCategoryBrowser::FXAndCategoryBrowser()
+FXAndCategoryBrowser::FXAndCategoryBrowser()  : currentPossibleDragPoint(0, 0)
 {
     setTitleBarComponent(std::make_unique<TitleBar>(*this));
 }
@@ -164,6 +164,12 @@ void FXAndCategoryBrowser::paintOverChildren(Graphics& g)
         g.setFont(Font(18));
         g.drawText("Drop Files To Add", 0, (getHeight() - getTitleBarHeight()) / 2 - 9, getWidth(), 18, Justification::centred | Justification::verticallyCentred);
     }
+    
+    if(currentPossibleDragPoint.getX() != 0 && currentPossibleDragPoint.getY() != 0)
+    {
+        g.setColour(Colours::green);
+        g.drawLine(currentPossibleDragPoint.getX(), currentPossibleDragPoint.getY(), currentPossibleDragPoint.getX(), getHeight(), 1.5);
+    }
 }
 
 void FXAndCategoryBrowser::mouseDown(const MouseEvent& event)
@@ -175,7 +181,6 @@ void FXAndCategoryBrowser::mouseDown(const MouseEvent& event)
         menu.addItem("New Sub-Category", std::bind(&FXAndCategoryBrowser::addCategoryToDisplayedTree, this));
         
         menu.show();
-        update();
     }
 }
 
@@ -186,7 +191,8 @@ bool FXAndCategoryBrowser::isInterestedInFileDrag(const StringArray& files)
 
 void FXAndCategoryBrowser::fileDragMove(const StringArray& files, int x, int y)
 {
-    //Bounds not working
+    bool oldFilesBeingDragged = filesBeingDragged;
+    
     if(x > getTitleBarHeight())
     {
         filesBeingDragged = true;
@@ -195,7 +201,11 @@ void FXAndCategoryBrowser::fileDragMove(const StringArray& files, int x, int y)
     {
         filesBeingDragged = false;
     }
-    repaint();
+    
+    if(filesBeingDragged != oldFilesBeingDragged)
+    {
+        repaint();
+    }
 }
 
 void FXAndCategoryBrowser::fileDragExit(const StringArray& files)
@@ -219,6 +229,41 @@ void FXAndCategoryBrowser::rootItemChanged()
     getTitleBarComponent()->repaint();
 }
 
+bool FXAndCategoryBrowser::isInterestedInDragSource(const SourceDetails& details)
+{
+    return details.description == "ThumbnailItem";
+}
+
+void FXAndCategoryBrowser::itemDragMove(const SourceDetails& details)
+{
+    Point<int> tempPoint = details.localPosition;
+    
+    tempPoint.setY(tempPoint.getY() - 20);
+    
+    std::optional<Point<int>> pointBetweenItems = getMiddleOfTwoItems(tempPoint);
+    
+    Point<int> oldPoint = currentPossibleDragPoint;
+    
+    if(pointBetweenItems == std::nullopt)
+    {
+        currentPossibleDragPoint.setXY(0, 0);
+    }
+    else
+    {
+        currentPossibleDragPoint = *pointBetweenItems;
+    }
+    
+    if(oldPoint != currentPossibleDragPoint)
+    {
+        repaint();
+    }
+}
+
+void FXAndCategoryBrowser::itemDropped(const SourceDetails& details)
+{
+    
+}
+
 void FXAndCategoryBrowser::addCategoryToDisplayedTree()
 {
     FXAndCategoryBrowserItem* displayedItem = dynamic_cast<FXAndCategoryBrowserItem*>(getDisplayedItem());
@@ -226,6 +271,37 @@ void FXAndCategoryBrowser::addCategoryToDisplayedTree()
     ValueTree treeToAddTo = displayedItem->getDisplayedTree();
     
     treeToAddTo.addChild(ValueTree("Category"), -1, nullptr);
+    
+    update();
+}
+
+std::optional<Point<int>> FXAndCategoryBrowser::getMiddleOfTwoItems(const Point<int>& referencePoint)
+{
+    for(int i = 0; i < getDisplayedItem()->getNumberOfSubItems(); i++)
+    {
+        ThumbnailBrowserItem* item = getDisplayedItem()->getItemAtIndex(i);
+        
+        if(referencePoint.getY() >= item->getY() && referencePoint.getY() <= item->getY() + getItemSize().height)
+        {
+            //Ref point is in an item
+            if(referencePoint.getX() >= item->getX() && referencePoint.getX() <= item->getX() + getItemSize().width)
+            {
+                return std::nullopt;
+            }
+            
+            else if(referencePoint.getX() >= item->getX() - getHorizontalGapBetweenItems() && referencePoint.getX() <= item->getX())
+            {
+                Point<int> midPoint;
+                
+                midPoint.setY(item->getY() + getItemSize().height / 2);
+                midPoint.setX(getHorizontalGapBetweenItems() / 2 + (item->getX() - getHorizontalGapBetweenItems()));
+                
+                return midPoint;
+            }
+        }
+    }
+    
+    return std::nullopt;
 }
 
 FXAndCategoryBrowser::TitleBar::TitleBar(FXAndCategoryBrowser& newOwner)  : owner(newOwner)
@@ -253,8 +329,6 @@ void FXAndCategoryBrowser::TitleBar::paint(Graphics& g)
         textToDisplay = displayedItem->getDisplayedTree().getProperty("Name");
     }
         
-    DBG(textToDisplay);
-    
     g.drawText(textToDisplay, 0, 0, getWidth(), getHeight(), Justification::left);
 }
 
