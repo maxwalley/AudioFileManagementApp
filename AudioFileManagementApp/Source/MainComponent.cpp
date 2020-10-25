@@ -147,6 +147,7 @@ ValueTree FXAndCategoryBrowserItem::lookUpAndFindFX(const ValueTree& fxToLookUp)
 FXAndCategoryBrowser::FXAndCategoryBrowser()  : currentPossibleDragPoint(0, 0)
 {
     setTitleBarComponent(std::make_unique<TitleBar>(*this));
+    setSectionSelectionRule(std::bind(&FXAndCategoryBrowser::sectionSelectionRule, this, std::placeholders::_1));
 }
 
 FXAndCategoryBrowser::~FXAndCategoryBrowser()
@@ -278,6 +279,11 @@ void FXAndCategoryBrowser::addCategoryToDisplayedTree()
     treeToAddTo.addChild(ValueTree("Category"), -1, nullptr);
     
     update();
+}
+
+int FXAndCategoryBrowser::sectionSelectionRule(ThumbnailBrowserItem* item) const
+{
+    return 0;
 }
 
 std::optional<Point<int>> FXAndCategoryBrowser::getMiddleOfTwoItems(const Point<int>& referencePoint)

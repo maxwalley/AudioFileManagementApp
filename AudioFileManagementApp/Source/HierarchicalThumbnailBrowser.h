@@ -130,13 +130,18 @@ public:
     void removeSection(int indexToRemove);
     int getIndexOfSection(const String& sectionName) const;
     const String getSectionNameAtIndex(int index) const;
+    int getNumSections() const;
     
     void setGapBetweenSections(int newGap);
     int getGapBetweenSections() const;
+    
+    void setSectionSelectionRule(const std::function<int(ThumbnailBrowserItem*)>& newRule);
+    
+    int getNumSubItemsInSection(ThumbnailBrowserItem* itemToSearch, int sectionIndex) const;
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);
-    virtual void paintSection(Graphics& g, int sectionIndex){};
+    virtual void paintSection(Graphics& g, const String& sectionName, int sectionIndex){};
     virtual void displayedItemChanged(){};
     virtual void rootItemChanged(){};
     virtual void colourChanged() override;
@@ -185,6 +190,8 @@ private:
     StringArray sectionNames;
     
     int gapBetweenSections = 20;
+    
+    std::function<int(ThumbnailBrowserItem*)> sectionSelectionRule = nullptr;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierarchicalThumbnailBrowser)
 };

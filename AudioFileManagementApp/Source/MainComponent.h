@@ -62,6 +62,8 @@ private:
     
     void addCategoryToDisplayedTree();
     
+    int sectionSelectionRule(ThumbnailBrowserItem* item) const;
+    
     //Will return std::nullopt if on an item
     std::optional<Point<int>> getMiddleOfTwoItems(const Point<int>& referencePoint);
     

@@ -355,6 +355,11 @@ const String HierarchicalThumbnailBrowser::getSectionNameAtIndex(int index) cons
     return sectionNames[index];
 }
 
+int HierarchicalThumbnailBrowser::getNumSections() const
+{
+    return sectionNames.size();
+}
+
 void HierarchicalThumbnailBrowser::setGapBetweenSections(int newGap)
 {
     gapBetweenSections = newGap;
@@ -363,6 +368,37 @@ void HierarchicalThumbnailBrowser::setGapBetweenSections(int newGap)
 int HierarchicalThumbnailBrowser::getGapBetweenSections() const
 {
     return gapBetweenSections;
+}
+
+void HierarchicalThumbnailBrowser::setSectionSelectionRule(const std::function<int(ThumbnailBrowserItem*)>& newRule)
+{
+    sectionSelectionRule = newRule;
+}
+
+int HierarchicalThumbnailBrowser::getNumSubItemsInSection(ThumbnailBrowserItem* itemToSearch, int sectionIndex) const
+{
+    int count = 0;
+    
+    for(int i = 0; i < itemToSearch->getNumberOfSubItems(); i++)
+    {
+        if(sectionSelectionRule == nullptr)
+        {
+            if(sectionIndex == 0)
+            {
+                count++;
+            }
+        }
+        
+        else
+        {
+            if(sectionSelectionRule(itemToSearch->getItemAtIndex(i)) == sectionIndex)
+            {
+                count++;
+            }
+        }
+    }
+    
+    return count;
 }
 
 void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)
@@ -386,14 +422,6 @@ void HierarchicalThumbnailBrowser::paint (juce::Graphics& g)
     g.fillAll(findColour(backgroundColourId));
     
     paintTitleBar(g, getWidth(), titleBarHeight);
-    g.setOrigin(0, titleBarHeight);
-    
-    //Needs to call paintSection over and over
-    for(int i = 0; i < sectionNames.size(); i++)
-    {
-        paintSection(g, i);
-        //g.setOrigin(0, THAT SECTIONS HEIGHT)
-    }
 }
 
 void HierarchicalThumbnailBrowser::resized()
