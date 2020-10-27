@@ -72,6 +72,8 @@ private:
     HierarchicalThumbnailBrowser* owner = nullptr;
     ThumbnailBrowserItem* parent = nullptr;
     
+    int sectionID = 0;
+    
     friend class HierarchicalThumbnailBrowser;
 };
 
@@ -169,6 +171,9 @@ private:
         
         HierarchicalThumbnailBrowser& owner;
         int numItemsPerRow = 0;
+        
+        //Currently used section IDs and how many items are in that section
+        std::vector<std::pair<int, int>> sectionIds;
     };
     
     std::unique_ptr<ThumbnailBrowserItem> rootItem;

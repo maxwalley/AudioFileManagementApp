@@ -347,7 +347,7 @@ int HierarchicalThumbnailBrowser::getIndexOfSection(const String& sectionName) c
 
 const String HierarchicalThumbnailBrowser::getSectionNameAtIndex(int index) const
 {
-    if(index >= sectionNames.size() - 1)
+    if(index >= sectionNames.size() - 1 || index < 0)
     {
         return String();
     }
@@ -467,9 +467,16 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
     
     numItemsPerRow = calculateHowManyItemsPerRow();
     
-    int numRows = ceil(float(owner.getDisplayedItem()->getNumberOfSubItems()) / float(numItemsPerRow));
+    //Iterate through the sections working out how big they are and adding the height on
     
-    int componentHeight = (numRows + 1) * (owner.getVerticalGapBetweenItems() + owner.getItemSize().height) + owner.getVerticalGapBetweenItems();
+    int componentHeight = 0;
+    
+    for (const std::pair<int, int>& id : sectionIds)
+    {
+        int numRowsInSection = ceil(float(id.second) / float(numItemsPerRow));
+        int sectionHeight = owner.gapBetweenSections + numRowsInSection * owner.getItemSize().height + (numRowsInSection - 1) * owner.getVerticalGapBetweenItems();
+        componentHeight += sectionHeight;
+    }
     
     if(componentHeight < owner.getHeight() - owner.getTitleBarHeight())
     {
@@ -494,29 +501,47 @@ void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
 
 void HierarchicalThumbnailBrowser::Displayer::resized()
 {
-    int rowIndex = 0;
-    
-    Point<int> currentOrigin(0, 0);
-    
     ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
     
-    for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
+    int rowIndex = 0;
+    
+    Point<int> currentOrigin(owner.getHorizontalGapBetweenItems(), 0);
+    
+    for (const std::pair<int, int>& id : sectionIds)
     {
-        //Start of new row
-        if(i + 1 % numItemsPerRow == 1)
+        //Counts the number of items processed for this section
+        int indexInThisSection = 0;
+        
+        for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
         {
-            currentOrigin.setY(rowIndex * owner.getItemSize().height + owner.getVerticalGapBetweenItems());
-            ++rowIndex;
+            ThumbnailBrowserItem* subItem = displayedItem->getItemAtIndex(i);
             
-            currentOrigin.setX(owner.getHorizontalGapBetweenItems());
-        }
-        else
-        {
-            int newX = currentOrigin.getX() + owner.getItemSize().width + owner.getHorizontalGapBetweenItems();
-            currentOrigin.setX(newX);
+            if(subItem->sectionID != id.first)
+            {
+                continue;
+            }
+            
+            //Start of new row but not a new section
+            if(indexInThisSection != 0 && indexInThisSection + 1 % numItemsPerRow == 1)
+            {
+                currentOrigin.setY(rowIndex * owner.getItemSize().height + owner.getVerticalGapBetweenItems());
+                ++rowIndex;
+                
+                currentOrigin.setX(owner.getHorizontalGapBetweenItems());
+            }
+            else if(indexInThisSection != 0)
+            {
+                int newX = currentOrigin.getX() + owner.getItemSize().width + owner.getHorizontalGapBetweenItems();
+                currentOrigin.setX(newX);
+            }
+            
+            indexInThisSection++;
+            
+            subItem->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
         }
         
-        displayedItem->getItemAtIndex(i)->setBounds(currentOrigin.getX(), currentOrigin.getY(), owner.itemSize.width, owner.itemSize.height);
+        //Moves origin on for next section
+        currentOrigin.setXY(owner.getHorizontalGapBetweenItems(), currentOrigin.getY() + owner.getGapBetweenSections() + owner.getItemSize().height);
     }
 }
 
@@ -533,6 +558,39 @@ void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
     
     for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
     {
+        ThumbnailBrowserItem* subItem = displayedItem->getItemAtIndex(i);
+        
+        if(owner.sectionSelectionRule != nullptr)
+        {
+            int sectionID = owner.sectionSelectionRule(subItem);
+            
+            if(owner.getSectionNameAtIndex(sectionID).isEmpty())
+            {
+                //This is the undefined section ID
+                sectionID = owner.getNumSections();
+            }
+            
+            auto foundId = std::find_if(sectionIds.begin(), sectionIds.end(), [sectionID](std::pair<int, int>& id)
+            {
+                if(id.first == sectionID)
+                {
+                    return true;
+                }
+                return false;
+            });
+            
+            if(foundId == sectionIds.end())
+            {
+                sectionIds.push_back({sectionID, 1});
+            }
+            else
+            {
+                foundId->second++;
+            }
+            
+            subItem->sectionID = sectionID;
+        }
+        
         addAndMakeVisible(displayedItem->getItemAtIndex(i));
     }
 }

@@ -148,6 +148,9 @@ FXAndCategoryBrowser::FXAndCategoryBrowser()  : currentPossibleDragPoint(0, 0)
 {
     setTitleBarComponent(std::make_unique<TitleBar>(*this));
     setSectionSelectionRule(std::bind(&FXAndCategoryBrowser::sectionSelectionRule, this, std::placeholders::_1));
+    
+    addSection("Categories");
+    addSection("FX");
 }
 
 FXAndCategoryBrowser::~FXAndCategoryBrowser()
@@ -283,7 +286,18 @@ void FXAndCategoryBrowser::addCategoryToDisplayedTree()
 
 int FXAndCategoryBrowser::sectionSelectionRule(ThumbnailBrowserItem* item) const
 {
-    return 0;
+    FXAndCategoryBrowserItem* castedItem = dynamic_cast<FXAndCategoryBrowserItem*>(item);
+    
+    if(castedItem->getDisplayedTree().getType().toString() == "Category")
+    {
+        return 0;
+    }
+    else if(castedItem->getDisplayedTree().getType().toString() == "FX")
+    {
+        return 1;
+    }
+    
+    return -1;
 }
 
 std::optional<Point<int>> FXAndCategoryBrowser::getMiddleOfTwoItems(const Point<int>& referencePoint)
