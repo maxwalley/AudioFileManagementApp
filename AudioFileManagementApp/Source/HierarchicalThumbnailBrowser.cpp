@@ -471,11 +471,11 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
     
     int componentHeight = 0;
     
-    for (const std::pair<int, int>& id : sectionIds)
+    for (sectionData& id : sectionIds)
     {
-        int numRowsInSection = ceil(float(id.second) / float(numItemsPerRow));
-        int sectionHeight = owner.gapBetweenSections + numRowsInSection * owner.getItemSize().height + (numRowsInSection - 1) * owner.getVerticalGapBetweenItems();
-        componentHeight += sectionHeight;
+        int numRowsInSection = ceil(float(id.numItems) / float(numItemsPerRow));
+        id.sectionHeight = numRowsInSection * owner.getItemSize().height + (numRowsInSection - 1) * owner.getVerticalGapBetweenItems();
+        componentHeight += id.sectionHeight;
     }
     
     if(componentHeight < owner.getHeight() - owner.getTitleBarHeight())
@@ -496,7 +496,17 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
 
 void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
 {
+    Point<int> currentOrigin(owner.getHorizontalGapBetweenItems(), owner.getVerticalGapBetweenItems());
     
+    for (const sectionData& id : sectionIds)
+    {
+        g.setOrigin(currentOrigin);
+        
+        owner.paintSection(g, getWidth() - owner.getHorizontalGapBetweenItems(), id.sectionHeight, owner.getSectionNameAtIndex(id.sectionID), id.sectionID);
+        
+        currentOrigin.setY(id.sectionHeight + owner.getGapBetweenSections());
+        currentOrigin.setX(0);
+    }
 }
 
 void HierarchicalThumbnailBrowser::Displayer::resized()
@@ -505,9 +515,9 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
     
     int rowIndex = 0;
     
-    Point<int> currentOrigin(owner.getHorizontalGapBetweenItems(), 0);
+    Point<int> currentOrigin(owner.getHorizontalGapBetweenItems(), owner.getVerticalGapBetweenItems());
     
-    for (const std::pair<int, int>& id : sectionIds)
+    for (const sectionData& id : sectionIds)
     {
         //Counts the number of items processed for this section
         int indexInThisSection = 0;
@@ -516,7 +526,7 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
         {
             ThumbnailBrowserItem* subItem = displayedItem->getItemAtIndex(i);
             
-            if(subItem->sectionID != id.first)
+            if(subItem->sectionID != id.sectionID)
             {
                 continue;
             }
@@ -570,9 +580,9 @@ void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
                 sectionID = owner.getNumSections();
             }
             
-            auto foundId = std::find_if(sectionIds.begin(), sectionIds.end(), [sectionID](std::pair<int, int>& id)
+            auto foundId = std::find_if(sectionIds.begin(), sectionIds.end(), [sectionID](sectionData& id)
             {
-                if(id.first == sectionID)
+                if(id.sectionID == sectionID)
                 {
                     return true;
                 }
@@ -581,11 +591,11 @@ void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
             
             if(foundId == sectionIds.end())
             {
-                sectionIds.push_back({sectionID, 1});
+                sectionIds.push_back({sectionID, 1, 0});
             }
             else
             {
-                foundId->second++;
+                foundId->numItems++;
             }
             
             subItem->sectionID = sectionID;

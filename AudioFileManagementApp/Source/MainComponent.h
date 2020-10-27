@@ -55,6 +55,7 @@ private:
     void filesDropped(const StringArray &files, int x, int y) override;
     void displayedItemChanged() override;
     void rootItemChanged() override;
+    void paintSection(Graphics& g, int width, int height, const String& sectionName, int sectionIndex) override;
     
     bool isInterestedInDragSource(const SourceDetails& details) override;
     void itemDragMove(const SourceDetails& details) override;

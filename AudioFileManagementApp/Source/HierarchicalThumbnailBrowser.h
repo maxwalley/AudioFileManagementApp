@@ -143,7 +143,7 @@ public:
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);
-    virtual void paintSection(Graphics& g, const String& sectionName, int sectionIndex){};
+    virtual void paintSection(Graphics& g, int width, int height, const String& sectionName, int sectionIndex){};
     virtual void displayedItemChanged(){};
     virtual void rootItemChanged(){};
     virtual void colourChanged() override;
@@ -172,8 +172,15 @@ private:
         HierarchicalThumbnailBrowser& owner;
         int numItemsPerRow = 0;
         
+        struct sectionData
+        {
+            int sectionID;
+            int numItems;
+            int sectionHeight;
+        };
+        
         //Currently used section IDs and how many items are in that section
-        std::vector<std::pair<int, int>> sectionIds;
+        std::vector<sectionData> sectionIds;
     };
     
     std::unique_ptr<ThumbnailBrowserItem> rootItem;

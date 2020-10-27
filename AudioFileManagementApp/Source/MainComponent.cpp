@@ -233,6 +233,12 @@ void FXAndCategoryBrowser::rootItemChanged()
     getTitleBarComponent()->repaint();
 }
 
+void FXAndCategoryBrowser::paintSection(Graphics& g, int width, int height, const String& sectionName, int sectionIndex)
+{
+    g.setColour(Colours::yellow);
+    g.fillRect(0, 0, width, height);
+}
+
 bool FXAndCategoryBrowser::isInterestedInDragSource(const SourceDetails& details)
 {
     return details.description == "ThumbnailItem";
@@ -355,6 +361,8 @@ void FXAndCategoryBrowser::TitleBar::paint(Graphics& g)
     }
         
     g.drawText(textToDisplay, 0, 0, getWidth(), getHeight(), Justification::left);
+    
+    g.fillAll(Colours::yellow);
 }
 
 //==============================================================================
