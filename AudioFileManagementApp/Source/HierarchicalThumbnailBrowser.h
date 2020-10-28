@@ -36,6 +36,10 @@ public:
     ThumbnailBrowserItem* removeSubItemAndRelease(int indexToRemove);
     void clearSubItems();
     
+    void moveSubItemFromItemIntoThis(ThumbnailBrowserItem* itemToMove);
+    
+    bool isAChildOf(ThumbnailBrowserItem* possibleParent) const;
+    
     //If index out of range will return nullptr
     ThumbnailBrowserItem* getItemAtIndex(int index) const;
     int getNumberOfSubItems() const;
@@ -105,6 +109,7 @@ public:
     void setRootItem(std::unique_ptr<ThumbnailBrowserItem> newRootItem);
     ThumbnailBrowserItem* getRootItem() const;
     
+    //This should be a child of the root item
     void setDisplayedItem(ThumbnailBrowserItem* newItemToDisplay);
     ThumbnailBrowserItem* getDisplayedItem() const;
     

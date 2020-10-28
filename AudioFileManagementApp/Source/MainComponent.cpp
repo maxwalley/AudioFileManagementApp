@@ -78,7 +78,7 @@ void FXAndCategoryBrowserItem::itemDroppedIntoThisItem(ThumbnailBrowserItem* dro
         return;
     }
     
-    addNewSubItem(dropped->getParent()->removeSubItemAndRelease(dropped));
+    moveSubItemFromItemIntoThis(droppedItem);
     
     droppedTree.getParent().removeChild(droppedTree, nullptr);
     displayedTree.addChild(droppedTree, -1, nullptr);
@@ -130,6 +130,7 @@ void FXAndCategoryBrowserItem::valueTreeChildRemoved(ValueTree& parent, ValueTre
         if(removedChild == subItem->getDisplayedTree())
         {
             removeSubItem(subItem);
+            return;
         }
     }
 }
@@ -225,18 +226,17 @@ void FXAndCategoryBrowser::filesDropped(const StringArray &files, int x, int y)
 
 void FXAndCategoryBrowser::displayedItemChanged()
 {
-    getTitleBarComponent()->repaint();
+    getTitleBarComponent()->resized();
 }
 
 void FXAndCategoryBrowser::rootItemChanged()
 {
-    getTitleBarComponent()->repaint();
+    getTitleBarComponent()->resized();
 }
 
 void FXAndCategoryBrowser::paintSection(Graphics& g, int width, int height, const String& sectionName, int sectionIndex)
 {
-    g.setColour(Colours::yellow);
-    g.fillRect(0, 0, width, height);
+    g.drawRect(0, 0, width, height);
 }
 
 bool FXAndCategoryBrowser::isInterestedInDragSource(const SourceDetails& details)
@@ -347,22 +347,104 @@ FXAndCategoryBrowser::TitleBar::~TitleBar()
 
 void FXAndCategoryBrowser::TitleBar::paint(Graphics& g)
 {
-    String textToDisplay;
-        
-    if(owner.getDisplayedItem() == owner.getRootItem())
+    g.drawLine(0, getHeight(), getWidth(), getHeight());
+}
+
+void FXAndCategoryBrowser::TitleBar::resized()
+{
+    recursivelyPlaceItems();
+}
+
+int FXAndCategoryBrowser::TitleBar::recursivelyPlaceItems(FXAndCategoryBrowserItem* itemToDraw, int depth)
+{
+    if(itemToDraw == nullptr)
     {
-        textToDisplay = "Root";
+        itemToDraw = dynamic_cast<FXAndCategoryBrowserItem*>(owner.getDisplayedItem());
     }
+    
+    int startX = 0;
+    String textToDraw = "Root";
+    
+    //not displayed item
+    if(depth != 0)
+    {
+        textToDraw += "->";
+    }
+    
+    if(itemToDraw != owner.getRootItem())
+    {
+        startX = recursivelyPlaceItems(dynamic_cast<FXAndCategoryBrowserItem*>(itemToDraw->getParent()), depth + 1);
+        textToDraw = itemToDraw->getDisplayedTree().getProperty("Name");
+    }
+    //Only applies to root - since root will have the largest depth
     else
     {
-        FXAndCategoryBrowserItem* displayedItem = dynamic_cast<FXAndCategoryBrowserItem*>(owner.getDisplayedItem());
+        int oldSize = itemNameLabels.size();
         
-        textToDisplay = displayedItem->getDisplayedTree().getProperty("Name");
+        if(oldSize <= depth)
+        {
+            itemNameLabels.resize(depth + 1);
+            std::for_each(itemNameLabels.begin() + oldSize, itemNameLabels.end(), [this](std::unique_ptr<TitleBarLabel>& label)
+            {
+                label = std::make_unique<TitleBarLabel>(*this);
+                addAndMakeVisible(label.get());
+            });
+        }
     }
-        
-    g.drawText(textToDisplay, 0, 0, getWidth(), getHeight(), Justification::left);
     
-    g.fillAll(Colours::yellow);
+    itemNameLabels[depth]->setItemToDisplay(itemToDraw);
+    int textWidth = itemNameLabels[depth]->getFont().getStringWidth(textToDraw) + 5;
+    itemNameLabels[depth]->setText(textToDraw, dontSendNotification);
+    itemNameLabels[depth]->setBounds(startX, 0, textWidth, getHeight());
+    
+    return startX + textWidth;
+}
+
+FXAndCategoryBrowser::TitleBar::TitleBarLabel::TitleBarLabel(TitleBar& titleBar) : titleBarOwner(titleBar)
+{
+    
+}
+
+FXAndCategoryBrowser::TitleBar::TitleBarLabel::~TitleBarLabel()
+{
+    
+}
+
+void FXAndCategoryBrowser::TitleBar::TitleBarLabel::setItemToDisplay(FXAndCategoryBrowserItem* newItem)
+{
+    displayedItem = newItem;
+}
+
+FXAndCategoryBrowserItem* FXAndCategoryBrowser::TitleBar::TitleBarLabel::getItemToDisplay() const
+{
+    return displayedItem;
+}
+
+void FXAndCategoryBrowser::TitleBar::TitleBarLabel::mouseDoubleClick(const MouseEvent& event)
+{
+    titleBarOwner.owner.setDisplayedItem(displayedItem);
+}
+
+bool FXAndCategoryBrowser::TitleBar::TitleBarLabel::isInterestedInDragSource(const SourceDetails& details)
+{
+    return details.description == "ThumbnailItem";
+}
+
+void FXAndCategoryBrowser::TitleBar::TitleBarLabel::itemDropped(const SourceDetails& details)
+{
+    FXAndCategoryBrowserItem* droppedItem = dynamic_cast<FXAndCategoryBrowserItem*>(details.sourceComponent.get());
+    
+    if(droppedItem == nullptr || droppedItem == displayedItem || displayedItem->isAChildOf(droppedItem))
+    {
+        return;
+    }
+    
+    ValueTree droppedTree = droppedItem->getDisplayedTree();
+    
+    displayedItem->moveSubItemFromItemIntoThis(droppedItem);
+    
+    droppedTree.getParent().removeChild(droppedTree, nullptr);
+    displayedItem->getDisplayedTree().addChild(droppedTree, -1, nullptr);
 }
 
 //==============================================================================

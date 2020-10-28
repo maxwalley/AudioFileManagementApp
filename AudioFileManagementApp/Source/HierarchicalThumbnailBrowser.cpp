@@ -32,13 +32,13 @@ void ThumbnailBrowserItem::addNewSubItem(ThumbnailBrowserItem* newSubItem)
 
 void ThumbnailBrowserItem::removeSubItem(ThumbnailBrowserItem* itemToRemove)
 {
-    std::for_each(subItems.begin(), subItems.end(), [this, &itemToRemove](const std::unique_ptr<ThumbnailBrowserItem>& item)
+    
+    auto itemToDelete = std::remove_if(subItems.begin(), subItems.end(), [&itemToRemove](const std::unique_ptr<ThumbnailBrowserItem>& item)
     {
-        if(item.get() == itemToRemove)
-        {
-            std::remove(subItems.begin(), subItems.end(), item);
-        }
+        return item.get() == itemToRemove;
     });
+    
+    subItems.erase(itemToDelete);
 }
 
 void ThumbnailBrowserItem::removeSubItem(int indexToRemove)
@@ -81,6 +81,32 @@ ThumbnailBrowserItem* ThumbnailBrowserItem::removeSubItemAndRelease(int indexToR
 void ThumbnailBrowserItem::clearSubItems()
 {
     subItems.clear();
+}
+
+void ThumbnailBrowserItem::moveSubItemFromItemIntoThis(ThumbnailBrowserItem* itemToMove)
+{
+    if(isAChildOf(itemToMove))
+    {
+        return;
+    }
+    
+    addNewSubItem(itemToMove->getParent()->removeSubItemAndRelease(itemToMove));
+}
+
+bool ThumbnailBrowserItem::isAChildOf(ThumbnailBrowserItem* possibleParent) const
+{
+    ThumbnailBrowserItem* parentBeingChecked = getParent();
+    
+    while (parentBeingChecked != nullptr)
+    {
+        if(parentBeingChecked == possibleParent)
+        {
+            return true;
+        }
+        parentBeingChecked = parentBeingChecked->getParent();
+    }
+    
+    return false;
 }
 
 ThumbnailBrowserItem* ThumbnailBrowserItem::getItemAtIndex(int index) const

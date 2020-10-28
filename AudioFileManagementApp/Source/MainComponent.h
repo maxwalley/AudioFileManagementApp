@@ -80,8 +80,33 @@ private:
         
     private:
         void paint(Graphics& g) override;
+        void resized() override;
+        
+        //Leave blank for displayed item - returns the end point of drawing
+        int recursivelyPlaceItems(FXAndCategoryBrowserItem* itemToDraw = nullptr, int depth = 0);
         
         FXAndCategoryBrowser& owner;
+        
+        class TitleBarLabel : public Label,
+                              public DragAndDropTarget
+        {
+        public:
+            TitleBarLabel(TitleBar& titleBar);
+            ~TitleBarLabel();
+            
+            void setItemToDisplay(FXAndCategoryBrowserItem* newItem);
+            FXAndCategoryBrowserItem* getItemToDisplay() const;
+            
+        private:
+            void mouseDoubleClick(const MouseEvent& event) override;
+            bool isInterestedInDragSource(const SourceDetails& details) override;
+            void itemDropped(const SourceDetails& details) override;
+            
+            FXAndCategoryBrowserItem* displayedItem = nullptr;
+            TitleBar& titleBarOwner;
+        };
+        
+        std::vector<std::unique_ptr<TitleBarLabel>> itemNameLabels;
     };
 };
 
