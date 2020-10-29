@@ -263,6 +263,8 @@ void HierarchicalThumbnailBrowser::setDisplayedItem(ThumbnailBrowserItem* newIte
         contentDisplayer.calculateAndResize(true);
         
         displayedItemChanged();
+        
+        contentDisplayer.repaint();
     }
 }
 
@@ -591,6 +593,8 @@ void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
     removeAllChildren();
     
     ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
+    
+    sectionIds.clear();
     
     for(int i = 0; i < displayedItem->getNumberOfSubItems(); i++)
     {
