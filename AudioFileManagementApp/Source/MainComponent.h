@@ -2,10 +2,11 @@
 
 #include <JuceHeader.h>
 #include "FXAndCategoryBrowser.h"
-#include "AudioPlayer.h"
+#include "AudioPlayerComponent.h"
 
 //==============================================================================
-class MainComponent  : public juce::Component
+class MainComponent  : public Component,
+                       public Slider::Listener
 {
 public:
     //==============================================================================
@@ -15,13 +16,15 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-    
-    void refreshBrowser();
 
 private:
 
+    void sliderValueChanged(Slider* slider) override;
+    
     FXAndCategoryBrowser browser;
-    AudioPlayer player;
+    AudioPlayerComponent player;
+    
+    Slider itemSizeSlider;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

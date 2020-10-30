@@ -202,7 +202,7 @@ void FXAndCategoryBrowser::paintOverChildren(Graphics& g)
 
 void FXAndCategoryBrowser::mouseDown(const MouseEvent& event)
 {
-    if(event.mods.isRightButtonDown())
+    if(event.mods.isRightButtonDown() && dynamic_cast<ThumbnailBrowserItem*>(event.originalComponent) == nullptr)
     {
         PopupMenu menu;
     
@@ -306,6 +306,8 @@ void FXAndCategoryBrowser::itemDropped(const SourceDetails& details)
 
 void FXAndCategoryBrowser::addCategoryToDisplayedTree()
 {
+    
+    
     FXAndCategoryBrowserItem* displayedItem = dynamic_cast<FXAndCategoryBrowserItem*>(getDisplayedItem());
     
     ValueTree treeToAddTo = displayedItem->getDisplayedTree();

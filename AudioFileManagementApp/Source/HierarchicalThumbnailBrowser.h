@@ -84,7 +84,6 @@ private:
 
 
 class HierarchicalThumbnailBrowser  : public Component,
-                                      public Button::Listener,
                                       public DragAndDropContainer
 {
 public:
@@ -169,8 +168,6 @@ private:
     void paint (juce::Graphics& g) override;
     void resized() override;
     
-    void buttonClicked(Button* button) override;
-    
     class Displayer  : public Component
     {
     public:
@@ -212,8 +209,6 @@ private:
     int horizontalGapBetweenItems = 10;
     int verticalGapBetweenItems = 15;
     int titleBarHeight = 22;
-    
-    TextButton testButton;
     
     std::unique_ptr<Component> titleBar = nullptr;
     

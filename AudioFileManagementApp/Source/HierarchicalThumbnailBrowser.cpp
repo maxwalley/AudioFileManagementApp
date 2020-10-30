@@ -204,18 +204,16 @@ int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndex
 }
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), testButton("Test"), sectionNames("Undefined")
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), sectionNames("Undefined")
 {
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentDisplayer, false);
+    contentDisplayer.addMouseListener(this, true);
     
     //Default colours
     setColour(backgroundColourId, Colours::silver);
     setColour(titleBarBackgroundColourId, Colours::darkgrey);
     setColour(titleBarTextColourId, Colours::black);
-    
-    addAndMakeVisible(testButton);
-    testButton.addListener(this);
 }
 
 HierarchicalThumbnailBrowser::~HierarchicalThumbnailBrowser()
@@ -472,8 +470,6 @@ void HierarchicalThumbnailBrowser::paint (juce::Graphics& g)
 
 void HierarchicalThumbnailBrowser::resized()
 {
-    testButton.setBounds(0, getHeight() - 20, 100, 20);
-    
     if(currentDisplayedItem == nullptr)
     {
         return;
@@ -486,11 +482,6 @@ void HierarchicalThumbnailBrowser::resized()
     {
         titleBar->setBounds(0, 0, getWidth(), titleBarHeight);
     }
-}
-
-void HierarchicalThumbnailBrowser::buttonClicked(Button* button)
-{
-    
 }
 
 HierarchicalThumbnailBrowser::Displayer::Displayer(HierarchicalThumbnailBrowser& ownerToDisplay)  : owner(ownerToDisplay)
@@ -544,10 +535,12 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
     setSize(owner.getWidth() - 8, componentHeight);
     
     //Forces a resize if one won't have occured because height is the same and components need to be redrawn
-    if(oldHeight == getHeight() && refreshItemList)
+    if(oldHeight == getHeight())
     {
         resized();
     }
+    
+    repaint();
 }
 
 void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)

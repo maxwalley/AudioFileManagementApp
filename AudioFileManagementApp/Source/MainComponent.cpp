@@ -12,6 +12,11 @@ MainComponent::MainComponent(const ValueTree& dataToDisplay, DataTreeManager& da
     browser.setRootItem(std::make_unique<FXAndCategoryBrowserItem>(dataToDisplay.getChildWithName("Categories"), dataTreeManager));
     
     addAndMakeVisible(player);
+    
+    addAndMakeVisible(itemSizeSlider);
+    itemSizeSlider.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+    itemSizeSlider.setRange(50, 150);
+    itemSizeSlider.addListener(this);
 }
 
 MainComponent::~MainComponent()
@@ -26,6 +31,14 @@ void MainComponent::paint (juce::Graphics& g)
 
 void MainComponent::resized()
 {
-    browser.setBounds(0, 40, getWidth(), getHeight() - 80);
-    player.setBounds(0, getHeight() - 40, getWidth(), 40);
+    browser.setBounds(0, 50, getWidth(), getHeight() - 100);
+    player.setBounds(0, getHeight() - 50, getWidth(), 50);
+    itemSizeSlider.setBounds(getWidth() / 3 * 2, 20, getWidth() / 3, 10);
+}
+
+void MainComponent::sliderValueChanged(Slider* slider)
+{
+    int val = slider->getValue();
+    
+    browser.setItemSize({val, val / 5 * 6});
 }
