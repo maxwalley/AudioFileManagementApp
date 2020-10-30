@@ -152,6 +152,8 @@ FXAndCategoryBrowser::FXAndCategoryBrowser()  : currentPossibleDragPoint(0, 0)
     
     addSection("Categories");
     addSection("FX");
+    
+    setSectionPadding(5, 5, 5, 5);
 }
 
 FXAndCategoryBrowser::~FXAndCategoryBrowser()
@@ -381,13 +383,34 @@ int FXAndCategoryBrowser::TitleBar::recursivelyPlaceItems(FXAndCategoryBrowserIt
     {
         int oldSize = itemNameLabels.size();
         
-        if(oldSize <= depth)
+        if(oldSize <= depth + 1)
         {
-            itemNameLabels.resize(depth + 1);
-            std::for_each(itemNameLabels.begin() + oldSize, itemNameLabels.end(), [this](std::unique_ptr<TitleBarLabel>& label)
+            if(oldSize != depth + 1)
             {
-                label = std::make_unique<TitleBarLabel>(*this);
-                addAndMakeVisible(label.get());
+                itemNameLabels.resize(depth + 1);
+            }
+            
+            for (int i = 0; i < itemNameLabels.size(); i++)
+            {
+                std::unique_ptr<TitleBarLabel>& label = itemNameLabels[i];
+                
+                if(i >= oldSize)
+                {
+                    label = std::make_unique<TitleBarLabel>(*this);
+                    addChildComponent(label.get());
+                }
+                
+                label->setVisible(true);
+            }
+        }
+        
+        //Old size more than depth
+        else
+        {
+            //Makes unused labels invisible
+            std::for_each(itemNameLabels.begin() + depth + 1, itemNameLabels.end(), [](std::unique_ptr<TitleBarLabel>& label)
+            {
+                label->setVisible(false);
             });
         }
     }

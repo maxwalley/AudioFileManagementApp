@@ -95,6 +95,14 @@ public:
         int height;
     };
     
+    struct PaddingDimensions
+    {
+        int leftPadding;
+        int rightPadding;
+        int topPadding;
+        int bottomPadding;
+    };
+    
     enum ColourIds
     {
         backgroundColourId = 0,
@@ -145,6 +153,10 @@ public:
     void setSectionSelectionRule(const std::function<int(ThumbnailBrowserItem*)>& newRule);
     
     int getNumSubItemsInSection(ThumbnailBrowserItem* itemToSearch, int sectionIndex) const;
+    
+    void setSectionPadding(const PaddingDimensions& newPadding);
+    void setSectionPadding(int leftPad, int rightPad, int topPad, int bottomPad);
+    PaddingDimensions getPaddingDimensions() const;
 
 protected:
     virtual void paintTitleBar(Graphics& g, int width, int height);
@@ -209,6 +221,8 @@ private:
     int gapBetweenSections = 20;
     
     std::function<int(ThumbnailBrowserItem*)> sectionSelectionRule = nullptr;
+    
+    PaddingDimensions sectionPadding;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HierarchicalThumbnailBrowser)
 };

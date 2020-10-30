@@ -204,7 +204,7 @@ int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndex
 }
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), itemSize{50, 50}, testButton("Test"), sectionNames("Undefined")
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), itemSize{50, 50}, testButton("Test"), sectionNames("Undefined"), sectionPadding({0, 0, 0, 0})
 {
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentDisplayer, false);
@@ -429,6 +429,24 @@ int HierarchicalThumbnailBrowser::getNumSubItemsInSection(ThumbnailBrowserItem* 
     return count;
 }
 
+void HierarchicalThumbnailBrowser::setSectionPadding(const PaddingDimensions& newPadding)
+{
+    sectionPadding = newPadding;
+}
+
+void HierarchicalThumbnailBrowser::setSectionPadding(int leftPad, int rightPad, int topPad, int bottomPad)
+{
+    sectionPadding.leftPadding = leftPad;
+    sectionPadding.rightPadding = rightPad;
+    sectionPadding.topPadding = topPad;
+    sectionPadding.bottomPadding = bottomPad;
+}
+
+HierarchicalThumbnailBrowser::PaddingDimensions HierarchicalThumbnailBrowser::getPaddingDimensions() const
+{
+    return sectionPadding;
+}
+
 void HierarchicalThumbnailBrowser::paintTitleBar(Graphics& g, int width, int height)
 {
     if(titleBar == nullptr)
@@ -502,7 +520,7 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
     for (sectionData& id : sectionIds)
     {
         int numRowsInSection = ceil(float(id.numItems) / float(numItemsPerRow));
-        id.sectionHeight = numRowsInSection * owner.getItemSize().height + (numRowsInSection - 1) * owner.getVerticalGapBetweenItems();
+        id.sectionHeight = numRowsInSection * owner.getItemSize().height + (numRowsInSection - 1) * owner.getVerticalGapBetweenItems() + owner.getPaddingDimensions().bottomPadding + owner.getPaddingDimensions().topPadding;
         componentHeight += id.sectionHeight;
     }
     
@@ -543,7 +561,7 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
     
     int rowIndex = 0;
     
-    Point<int> currentOrigin(owner.getHorizontalGapBetweenItems(), owner.getVerticalGapBetweenItems());
+    Point<int> currentOrigin(owner.getHorizontalGapBetweenItems()  + owner.getPaddingDimensions().leftPadding, owner.getVerticalGapBetweenItems() + owner.getPaddingDimensions().topPadding);
     
     for (const sectionData& id : sectionIds)
     {
@@ -565,7 +583,7 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
                 currentOrigin.setY(rowIndex * owner.getItemSize().height + owner.getVerticalGapBetweenItems());
                 ++rowIndex;
                 
-                currentOrigin.setX(owner.getHorizontalGapBetweenItems());
+                currentOrigin.setX(owner.getHorizontalGapBetweenItems() + owner.getPaddingDimensions().leftPadding);
             }
             else if(indexInThisSection != 0)
             {
@@ -579,13 +597,13 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
         }
         
         //Moves origin on for next section
-        currentOrigin.setXY(owner.getHorizontalGapBetweenItems(), currentOrigin.getY() + owner.getGapBetweenSections() + owner.getItemSize().height);
+        currentOrigin.setXY(owner.getHorizontalGapBetweenItems() + owner.getPaddingDimensions().leftPadding, currentOrigin.getY() + owner.getGapBetweenSections() + owner.getItemSize().height + owner.getPaddingDimensions().topPadding + owner.getPaddingDimensions().bottomPadding);
     }
 }
 
 int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const
 {
-    return floor((owner.getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems));
+    return floor((owner.getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems) + owner.getPaddingDimensions().rightPadding + owner.getPaddingDimensions().leftPadding);
 }
 
 void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
