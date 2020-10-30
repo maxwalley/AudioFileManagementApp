@@ -91,16 +91,16 @@ public:
     
     struct Size
     {
-        int width;
-        int height;
+        int width = 50;
+        int height = 50;
     };
     
     struct PaddingDimensions
     {
-        int leftPadding;
-        int rightPadding;
-        int topPadding;
-        int bottomPadding;
+        int leftPadding = 0;
+        int rightPadding = 0;
+        int topPadding = 0;
+        int bottomPadding = 0;
     };
     
     enum ColourIds
@@ -194,6 +194,7 @@ private:
             int sectionID;
             int numItems;
             int sectionHeight;
+            int sectionWidth;
         };
         
         //Currently used section IDs and how many items are in that section

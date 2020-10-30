@@ -204,7 +204,7 @@ int ThumbnailBrowserItem::getIndexOfSubItem(ThumbnailBrowserItem* itemToGetIndex
 }
 
 //==============================================================================
-HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), itemSize{50, 50}, testButton("Test"), sectionNames("Undefined"), sectionPadding({0, 0, 0, 0})
+HierarchicalThumbnailBrowser::HierarchicalThumbnailBrowser()  : contentDisplayer(*this), testButton("Test"), sectionNames("Undefined")
 {
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentDisplayer, false);
@@ -521,6 +521,16 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
     {
         int numRowsInSection = ceil(float(id.numItems) / float(numItemsPerRow));
         id.sectionHeight = numRowsInSection * owner.getItemSize().height + (numRowsInSection - 1) * owner.getVerticalGapBetweenItems() + owner.getPaddingDimensions().bottomPadding + owner.getPaddingDimensions().topPadding;
+        
+        if(numRowsInSection == 1)
+        {
+            id.sectionWidth = id.numItems * owner.getItemSize().width + (id.numItems - 1) * owner.getHorizontalGapBetweenItems() + owner.getPaddingDimensions().leftPadding + owner.getPaddingDimensions().rightPadding;
+        }
+        else
+        {
+            id.sectionWidth = getWidth() - owner.getHorizontalGapBetweenItems();
+        }
+        
         componentHeight += id.sectionHeight;
     }
     
@@ -548,7 +558,7 @@ void HierarchicalThumbnailBrowser::Displayer::paint(Graphics& g)
     {
         g.setOrigin(currentOrigin);
         
-        owner.paintSection(g, getWidth() - owner.getHorizontalGapBetweenItems(), id.sectionHeight, owner.getSectionNameAtIndex(id.sectionID), id.sectionID);
+        owner.paintSection(g, id.sectionWidth, id.sectionHeight, owner.getSectionNameAtIndex(id.sectionID), id.sectionID);
         
         currentOrigin.setY(id.sectionHeight + owner.getGapBetweenSections());
         currentOrigin.setX(0);
