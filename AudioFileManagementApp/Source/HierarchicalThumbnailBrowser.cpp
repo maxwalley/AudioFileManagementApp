@@ -506,11 +506,12 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
     
     //Iterate through the sections working out how big they are and adding the height on
     
-    int componentHeight = 0;
+    int componentHeight = owner.getVerticalGapBetweenItems();
     
     for (sectionData& id : sectionIds)
     {
         int numRowsInSection = ceil(float(id.numItems) / float(numItemsPerRow));
+        
         id.sectionHeight = numRowsInSection * owner.getItemSize().height + (numRowsInSection - 1) * owner.getVerticalGapBetweenItems() + owner.getPaddingDimensions().bottomPadding + owner.getPaddingDimensions().topPadding;
         
         if(numRowsInSection == 1)
@@ -519,10 +520,10 @@ void HierarchicalThumbnailBrowser::Displayer::calculateAndResize(bool refreshIte
         }
         else
         {
-            id.sectionWidth = getWidth() - owner.getHorizontalGapBetweenItems();
+            id.sectionWidth = numItemsPerRow * owner.getItemSize().width + (numItemsPerRow - 1) * owner.getHorizontalGapBetweenItems()+ owner.getPaddingDimensions().leftPadding + owner.getPaddingDimensions().rightPadding;
         }
         
-        componentHeight += id.sectionHeight;
+        componentHeight += id.sectionHeight + owner.getGapBetweenSections();
     }
     
     if(componentHeight < owner.getHeight() - owner.getTitleBarHeight())
@@ -562,8 +563,6 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
 {
     ThumbnailBrowserItem* displayedItem = owner.getDisplayedItem();
     
-    int rowIndex = 0;
-    
     Point<int> currentOrigin(owner.getHorizontalGapBetweenItems()  + owner.getPaddingDimensions().leftPadding, owner.getVerticalGapBetweenItems() + owner.getPaddingDimensions().topPadding);
     
     for (const sectionData& id : sectionIds)
@@ -581,10 +580,9 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
             }
             
             //Start of new row but not a new section
-            if(indexInThisSection != 0 && indexInThisSection + 1 % numItemsPerRow == 1)
+            if(indexInThisSection != 0 && indexInThisSection % numItemsPerRow == 0)
             {
-                currentOrigin.setY(rowIndex * owner.getItemSize().height + owner.getVerticalGapBetweenItems());
-                ++rowIndex;
+                currentOrigin.setY(currentOrigin.getY() + owner.getItemSize().height + owner.getVerticalGapBetweenItems());
                 
                 currentOrigin.setX(owner.getHorizontalGapBetweenItems() + owner.getPaddingDimensions().leftPadding);
             }
@@ -606,7 +604,7 @@ void HierarchicalThumbnailBrowser::Displayer::resized()
 
 int HierarchicalThumbnailBrowser::Displayer::calculateHowManyItemsPerRow() const
 {
-    return floor((owner.getWidth() - owner.horizontalGapBetweenItems - 8) / (owner.itemSize.width + owner.horizontalGapBetweenItems) + owner.getPaddingDimensions().rightPadding + owner.getPaddingDimensions().leftPadding);
+    return floor((owner.getWidth() - owner.horizontalGapBetweenItems - 8 - owner.getPaddingDimensions().rightPadding - owner.getPaddingDimensions().leftPadding)) / (owner.itemSize.width + owner.horizontalGapBetweenItems);
 }
 
 void HierarchicalThumbnailBrowser::Displayer::refreshChildrenComponents()
