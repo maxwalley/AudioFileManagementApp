@@ -66,14 +66,7 @@ void FXAndCategoryBrowserItem::paint(Graphics& g)
     
     g.drawLine(0, heightToDraw, getWidth(), heightToDraw);
     
-    if(displayedTree.getType().toString() == "Category")
-    {
-        g.drawText(displayedTree.getProperty("Name"), 0, heightToDraw, getWidth(), float(getHeight()) / 6.0, Justification::centred | Justification::verticallyCentred);
-    }
-    else if (displayedTree.getType().toString() == "FX")
-    {
-        g.drawText(displayedTree.getProperty("Path"), 0, heightToDraw, getWidth(), float(getHeight()) / 6.0, Justification::centred | Justification::verticallyCentred);
-    }
+    g.drawText(displayedTree.getProperty("Name"), 0, heightToDraw, getWidth(), float(getHeight()) / 6.0, Justification::centred | Justification::verticallyCentred);
 }
 
 void FXAndCategoryBrowserItem::mouseDown(const MouseEvent& event)

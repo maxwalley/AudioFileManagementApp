@@ -26,6 +26,7 @@ public:
     
 private:
     void childTreeAdded(ValueTree& parent, ValueTree& child) override;
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
     
     void initialTreeFormat(ValueTree treeToFormat = ValueTree());
 };

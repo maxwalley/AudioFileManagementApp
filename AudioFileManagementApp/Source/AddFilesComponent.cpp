@@ -147,16 +147,18 @@ int AddFilesComponent::addFiles(const juce::Array<File>& filesToAdd)
             }
         }
         
+        //Add the trees then set properties so that we get the callbacks
         ValueTree fileTree("FX");
-        fileTree.setProperty("Path", path, nullptr);
         
         ValueTree listBoxDisplayData("ListBoxData");
-        listBoxDisplayData.setProperty("Selected", false, nullptr);
-        listBoxDisplayData.setProperty("Completed", false, nullptr);
         
         fileTree.appendChild(listBoxDisplayData, nullptr);
         
         newFileData.addChild(fileTree, -1, nullptr);
+        
+        fileTree.setProperty("Path", path, nullptr);
+        listBoxDisplayData.setProperty("Selected", false, nullptr);
+        listBoxDisplayData.setProperty("Completed", false, nullptr);
         
         numFilesAdded++;
     }

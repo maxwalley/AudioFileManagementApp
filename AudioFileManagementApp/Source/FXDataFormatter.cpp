@@ -61,6 +61,23 @@ void FXDataFormatter::childTreeAdded(ValueTree& parent, ValueTree& newChild)
     }
 }
 
+void FXDataFormatter::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
+{
+    if(property.toString() == "Path")
+    {
+        String fullPath = treeWhosePropertyHasChanged.getProperty(property);
+        
+        int lastStop = fullPath.lastIndexOf(".");
+        int lastSlash = fullPath.lastIndexOf("/");
+        
+        String name = fullPath.substring(++lastSlash, lastStop);
+        
+        DBG(name);
+        
+        treeWhosePropertyHasChanged.setProperty("Name", name, nullptr);
+    }
+}
+
 void FXDataFormatter::initialTreeFormat(ValueTree treeToFormat)
 {
     if(!treeToFormat.isValid())
