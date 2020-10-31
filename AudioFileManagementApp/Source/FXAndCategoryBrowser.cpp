@@ -25,7 +25,7 @@ FXAndCategoryBrowserItem::FXAndCategoryBrowserItem(const ValueTree& treeToDispla
         {
             for(const ValueTree& fxChild : child)
             {
-                addNewSubItem(new FXAndCategoryBrowserItem(lookUpAndFindFX(fxChild), treeManager));
+                addNewSubItem(new FXBrowserItem(lookUpAndFindFX(fxChild), treeManager));
             }
         }
     }
@@ -67,6 +67,8 @@ void FXAndCategoryBrowserItem::paint(Graphics& g)
     g.drawLine(0, heightToDraw, getWidth(), heightToDraw);
     
     g.drawText(displayedTree.getProperty("Name"), 0, heightToDraw, getWidth(), float(getHeight()) / 6.0, Justification::centred | Justification::verticallyCentred);
+    
+    paintOverlay(g);
 }
 
 void FXAndCategoryBrowserItem::mouseDown(const MouseEvent& event)
@@ -153,6 +155,71 @@ ValueTree FXAndCategoryBrowserItem::lookUpAndFindFX(const ValueTree& fxToLookUp)
     assert(fxToLookUp.getParent().getType().toString() == "FXList");
     
     return treeManager.getTreeFormatter(DataTreeManager::TreeType::FXTree)->getTreeWithID(fxToLookUp.getProperty("IDNum"));
+}
+
+
+FXBrowserItem::FXBrowserItem(const ValueTree& treeToDisplay, DataTreeManager& dataManager)  : FXAndCategoryBrowserItem(treeToDisplay, dataManager)
+{
+    addAndMakeVisible(playButton);
+}
+
+FXBrowserItem::~FXBrowserItem()
+{
+    
+}
+
+void FXBrowserItem::resized()
+{
+    int portionOfHeight = ((float(getHeight()) / 6.0) * 5.0) / 6.0;
+    
+    playButton.setBounds(getWidth() / 6, portionOfHeight, getWidth() / 3 * 2, portionOfHeight * 4);
+}
+
+void FXBrowserItem::paintOverlay(Graphics& g)
+{
+    playButton.setVisible(mouseOver);
+    
+    if(mouseOver)
+    {
+        g.setColour(Colours::lightgrey);
+        g.setOpacity(0.7);
+        g.fillRect(0.0, 0.0, float(getWidth()), float((getHeight()) / 6.0) * 5.0);
+    }
+}
+
+void FXBrowserItem::mouseMove(const MouseEvent& event)
+{
+    bool oldMouseOver = mouseOver;
+    
+    if(event.y >= getHeight() / 6 * 5)
+    {
+        mouseOver = false;
+    }
+    else
+    {
+        mouseOver = true;
+    }
+    
+    if(mouseOver != oldMouseOver)
+    {
+        repaint();
+    }
+}
+
+FXBrowserItem::PlayButton::PlayButton()  : Button(String())
+{
+    
+}
+
+FXBrowserItem::PlayButton::~PlayButton()
+{
+    
+}
+
+void FXBrowserItem::PlayButton::paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    g.setColour(Colours::red);
+    g.fillEllipse(0, 0, getWidth(), getHeight());
 }
 
 //==============================================================================

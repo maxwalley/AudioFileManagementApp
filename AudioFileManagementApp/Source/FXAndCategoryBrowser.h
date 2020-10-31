@@ -22,6 +22,9 @@ public:
     
     ValueTree getDisplayedTree() const;
     
+protected:
+    virtual void paintOverlay(Graphics& g){};
+    
 private:
     bool canBeOpened() override;
     
@@ -40,6 +43,32 @@ private:
     ValueTree displayedTree;
     
     DataTreeManager& treeManager;
+};
+
+class FXBrowserItem  : public FXAndCategoryBrowserItem
+{
+public:
+    FXBrowserItem(const ValueTree& treeToDisplay, DataTreeManager& dataManager);
+    ~FXBrowserItem();
+    
+private:
+    void resized() override;
+    void paintOverlay(Graphics& g) override;
+    void mouseMove(const MouseEvent& event) override;
+    
+    class PlayButton  : public Button
+    {
+    public:
+        PlayButton();
+        ~PlayButton();
+        
+    private:
+        void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+    };
+    
+    bool mouseOver = false;
+    
+    PlayButton playButton;
 };
 
 //==============================================================================
